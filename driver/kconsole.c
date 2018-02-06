@@ -61,6 +61,7 @@ u32 get_offset( u32 x, u32 y )
   return ( x * WIDTH + y ) << 1;
 }
 
+
 u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
 {
   u32 x = get_pos_x( offset ), y = get_pos_y( offset );
@@ -82,6 +83,19 @@ u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
   VGA[offset + 1] = ( (u8)bg << 4 ) + (u8)fg;
 
   return offset + 2;
+}
+
+i32 kconsole_putc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
+{
+  u32 offset = get_cusor();
+  offset = write( ch, bg, fg, offset );
+  set_cursor( offset );
+  return ch;
+}
+
+i32 kconsole_putc( u8 ch )
+{
+  return kconsole_putc_color( ch, VGA_BLACK, VGA_WHITE );
 }
 
 i32 kconsole_puts_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg )
