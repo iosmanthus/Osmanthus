@@ -6,6 +6,7 @@
 
 #define HEIGHT 25
 #define WIDTH 80
+#define END ( ( HEIGHT * WIDTH ) << 1 )
 
 #define VGA ( (u8 *)0xb8000 ) // VGA base address
 
@@ -119,8 +120,11 @@ i32 kconsole_puts( const u8 *str )
 void kconsole_clear()
 {
   set_cursor( 0 );
-  for ( u16 *p = (u16 *)VGA, *end = &p[HEIGHT * WIDTH]; p < end; ++p )
-    *p = 0;
+  u8 *s = VGA;
+  while ( s < &VGA[END] ) {
+    *s++ = 0;
+    *s++ = VGA_WHITE;
+  }
 }
 
 void kconsole_scroll()
