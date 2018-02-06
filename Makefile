@@ -92,6 +92,6 @@ clean:
 		*/*.o
 	@echo -e "\033[0;31mFinished\033[0m"
 
-.PHONY: uploading
+.PHONY: upload
 	@echo -e "\033[0;34mUploading to Github\033[0m"
 	@proxychains4 -q git push git@github.com:iosmanthus/Osmanthus.git dev-iosmanthus
