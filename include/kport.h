@@ -15,7 +15,7 @@
 #define DWORD ( ( u8 )( WORD << 1 ) )
 #endif /* ifndef DWORD */
 
-void kports_out( u16 port, u32 data, u8 size ); // Write data
-u8 kports_in( u16 port );                       // Read data
+void kport_out( u16 port, u32 data, u8 size ); // Write data
+u32 kport_in( u16 port, u8 size );             // Read data
 
 #endif /* ifndef _KPORTS_H_ */
