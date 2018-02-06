@@ -33,7 +33,7 @@ typedef enum _VgaTextAtrr {
  * return the character's ASCII value if successed
  * or return EOF defined in <ktypes.h>
  * */
-i32 kconsole_putc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg );
+i32 kputc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg );
 
 
 /*
@@ -44,7 +44,7 @@ i32 kconsole_putc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg );
  * return the character's ASCII value if successed
  * or return EOF defined in <ktypes.h>
  * */
-i32 kconsole_putc( u8 ch );
+i32 kputc( u8 ch );
 
 /*
  * Print a string on the console and move the cursor
@@ -57,7 +57,7 @@ i32 kconsole_putc( u8 ch );
  * return the count of character that has been printed if successed
  * or return EOF defined in <ktypes.h>
  * */
-i32 kconsole_puts_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg );
+i32 kputs_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg );
 
 
 /*
@@ -68,17 +68,17 @@ i32 kconsole_puts_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg );
  * return the count of character that has been printed if successed
  * or return EOF defined in <ktypes.h>
  * */
-i32 kconsole_puts( const u8 *str );
+i32 kputs( const u8 *str );
 
 /*
  * Scroll the screen if there is no more space
  * in the console to be written.
  * */
-void kconsole_scroll();
+void kscroll();
 
 /*
  * Clear the console
  * */
-void kconsole_clear();
+void kclear();
 
 #endif /* ifndef _KCONSOLE_H_ */

@@ -8,6 +8,6 @@ u32 write( u8, u8, u8, u32 );
 
 int kmain( struct multiboot *mboot_ptr )
 {
-  kconsole_clear();
+  kputs( (const u8 *)"hello world\n" );
   return 0;
 }

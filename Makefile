@@ -1,7 +1,7 @@
 OS_NAME=Osmanthus
-KERNEL_NAME= osmanthus
+KERNEL_NAME=osmanthus
 ISO_DIR=isodir
-ISO_NAME=osmanthus.iso
+ISO_NAME=${KERNEL_NAME}.iso
 
 BUILD_PATH=build
 SCRIPTS_PATH=scripts
@@ -14,7 +14,7 @@ ASM=nasm
 CC=gcc
 LD=ld
 
-CFLAGS	= -c -m32 -Wextra -Wall \
+CFLAGS=-c -m32 -Wextra -Wall \
 					-ggdb -gstabs+ \
 					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector \
 					-Xassembler --32 \
@@ -25,10 +25,10 @@ CFLAGS	= -c -m32 -Wextra -Wall \
 LDFLAGS = -T $(SCRIPTS_PATH)/link.ld -m elf_i386 -nostdlib
 ASFLAGS = -f elf
 
-C_SOURCES					= ${wildcard ${KERNEL_PATH}/*.c ${DRIVER_PATH}/*.c}
-C_OBJ							= ${C_SOURCES:.c=.o}
-ASM_SOURCES				= ${wildcard ${BOOT_PATH}/*.asm}
-ASM_OBJ						= ${ASM_SOURCES:.asm=.o}
+C_SOURCES=${wildcard ${KERNEL_PATH}/*.c ${DRIVER_PATH}/*.c}
+C_OBJ=${C_SOURCES:.c=.o}
+ASM_SOURCES=${wildcard ${BOOT_PATH}/*.asm}
+ASM_OBJ=${ASM_SOURCES:.asm=.o}
 
 .PHONY: all
 all :  ${BUILD_PATH} ${KERNEL_NAME}
@@ -60,14 +60,14 @@ run:
 	@make --no-print-directory
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 \
-		${BUILD_PATH}/osmanthus.iso > /dev/null 2>&1 &
+		${BUILD_PATH}/${ISO_NAME} > /dev/null 2>&1 &
 
 .PHONY: debug
 debug:
 	@make --no-print-directory
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 -s -S \
-		${BUILD_PATH}/osmanthus.iso > /dev/null 2>&1 &
+		${BUILD_PATH}/${ISO_NAME} > /dev/null 2>&1 &
 	@echo -e "\033[1;33mStarting GDB\033[0m"
 	@gdb -x ${SCRIPTS_PATH}/gdbinit
 	@echo -e "\033[1;31mFinished\033[0m"
