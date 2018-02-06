@@ -1,7 +1,7 @@
 OS_NAME=Osmanthus
-KERNEL_NAME= osmanthus
+KERNEL_NAME=osmanthus
 ISO_DIR=isodir
-ISO_NAME=osmanthus.iso
+ISO_NAME=${KERNEL_NAME}.iso
 
 BUILD_PATH=build
 SCRIPTS_PATH=scripts
@@ -60,14 +60,14 @@ run:
 	@make --no-print-directory
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 \
-		${BUILD_PATH}/osmanthus.iso > /dev/null 2>&1 &
+		${BUILD_PATH}/${ISO_NAME} > /dev/null 2>&1 &
 
 .PHONY: debug
 debug:
 	@make --no-print-directory
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 -s -S \
-		${BUILD_PATH}/osmanthus.iso > /dev/null 2>&1 &
+		${BUILD_PATH}/${ISO_NAME} > /dev/null 2>&1 &
 	@echo -e "\033[1;33mStarting GDB\033[0m"
 	@gdb -x ${SCRIPTS_PATH}/gdbinit
 	@echo -e "\033[1;31mFinished\033[0m"
