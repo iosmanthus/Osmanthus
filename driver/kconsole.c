@@ -67,7 +67,7 @@ u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
 
   if ( x >= HEIGHT || y >= WIDTH ) {
     kconsole_scroll();
-    return get_offset( HEIGHT - 1, 0 );
+    offset = get_offset( HEIGHT - 1, 0 );
   }
 
   if ( ch == '\n' ) {
