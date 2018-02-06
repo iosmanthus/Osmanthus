@@ -68,13 +68,13 @@ u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
   u32 x = get_pos_x( offset ), y = get_pos_y( offset );
 
   if ( x >= HEIGHT || y >= WIDTH ) {
-    kconsole_scroll();
+    kscroll();
     offset = get_offset( HEIGHT - 1, 0 );
   }
 
   if ( ch == '\n' ) {
     if ( x == 24 ) {
-      kconsole_scroll();
+      kscroll();
       return get_offset( HEIGHT - 1, 0 );
     } else
       return get_offset( x + 1, 0 );
@@ -86,7 +86,7 @@ u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
   return offset + 2;
 }
 
-i32 kconsole_putc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
+i32 kputc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
 {
   u32 offset = get_cursor();
   offset = write( ch, bg, fg, offset );
@@ -94,12 +94,12 @@ i32 kconsole_putc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
   return ch;
 }
 
-i32 kconsole_putc( u8 ch )
+i32 kputc( u8 ch )
 {
-  return kconsole_putc_color( ch, VGA_BLACK, VGA_WHITE );
+  return kputc_color( ch, VGA_BLACK, VGA_WHITE );
 }
 
-i32 kconsole_puts_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg )
+i32 kputs_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg )
 {
   u32 offset = get_cursor();
   const u8 *s = str;
@@ -112,12 +112,12 @@ i32 kconsole_puts_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg )
   return cnt;
 }
 
-i32 kconsole_puts( const u8 *str )
+i32 kputs( const u8 *str )
 {
-  return kconsole_puts_color( str, VGA_BLACK, VGA_WHITE );
+  return kputs_color( str, VGA_BLACK, VGA_WHITE );
 }
 
-void kconsole_clear()
+void kclear()
 {
   set_cursor( 0 );
   u8 *s = VGA;
@@ -127,7 +127,7 @@ void kconsole_clear()
   }
 }
 
-void kconsole_scroll()
+void kscroll()
 {
   typedef u16( *VideoMem )[WIDTH];
   VideoMem v = (VideoMem)VGA;
