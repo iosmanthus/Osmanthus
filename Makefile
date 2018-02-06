@@ -29,8 +29,6 @@ C_SOURCES					= ${wildcard ${KERNEL_PATH}/*.c ${DRIVER_PATH}/*.c}
 C_OBJ							= ${C_SOURCES:.c=.o}
 ASM_SOURCES				= ${wildcard ${BOOT_PATH}/*.asm}
 ASM_OBJ						= ${ASM_SOURCES:.asm=.o}
-#C-OBJ						= ${BUILD_PATH}/${notdir ${C-SOURCES:.c=.o}}
-#ASM_OBJ					= ${BUILD_PATH}/${notdir ${ASM_SOURCES:.asm=.o}}
 
 .PHONY: all
 all :  ${BUILD_PATH} ${KERNEL_NAME}
@@ -49,10 +47,6 @@ ${KERNEL_NAME} : ${ASM_OBJ} ${C_OBJ}
 	@echo -e "\033[0;34mLinking kernel \033[0m"
 	@${LD} ${LDFLAGS} $^ -o ${BUILD_PATH}/$@
 
-#%.o : %.cpp
-#	@echo -e "\033[0;32mCompiling module :\t\033[0m" $<
-#	@${CC} ${CFLAGS} $< -o $@
-
 %.o : %.c
 	@echo -e "\033[0;32mCompiling module :\t\033[0m" $<
 	@${CC} ${CFLAGS} $< -o $@
@@ -67,16 +61,6 @@ run:
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 \
 		${BUILD_PATH}/osmanthus.iso > /dev/null 2>&1 &
-
-#.PHONY: debug
-#debug:
-#	@make --no-print-directory
-#	@echo -e "\033[0;34mStarting QEMU\033[0m"
-#	@qemu-system-i386 -s -S \
-#		${BUILD_PATH}/osmanthus.iso > /dev/null 2>&1 &
-#	@echo -e "\033[1;33mStarting GDB\033[0m"
-#	@gdb -x ${SCRIPTS_PATH}/gdbinit
-#	@echo -e "\033[1;31mFinished\033[0m"
 
 .PHONY: debug
 debug:
