@@ -7,7 +7,7 @@
 #define HEIGHT 25
 #define WIDTH 80
 
-#define VGA ( (u8 *)0xb8000 )
+#define VGA ( (u8 *)0xb8000 ) // VGA base address
 
 
 static void

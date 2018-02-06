@@ -1,18 +1,18 @@
-OS_NAME							= Osmanthus
-KERNEL_NAME					= osmanthus
-ISO_DIR							= isodir
-ISO_NAME						= osmanthus.iso
+OS_NAME=Osmanthus
+KERNEL_NAME= osmanthus
+ISO_DIR=isodir
+ISO_NAME=osmanthus.iso
 
-BUILD_PATH					= build
-SCRIPTS_PATH				= scripts
-BOOT_PATH						= boot
-KERNEL_PATH					= kernel
-DRIVER_PATH					= driver
-INCLUDE							= include
+BUILD_PATH=build
+SCRIPTS_PATH=scripts
+BOOT_PATH=boot
+KERNEL_PATH=kernel
+DRIVER_PATH=driver
+INCLUDE=include
 
-ASM     = nasm
-CC      = gcc
-LD      = ld
+ASM=nasm
+CC=gcc
+LD=ld
 
 CFLAGS	= -c -m32 -Wextra -Wall \
 					-ggdb -gstabs+ \
