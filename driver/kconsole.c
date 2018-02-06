@@ -1,5 +1,5 @@
 #include <kconsole.h>
-#include <kports.h>
+#include <kport.h>
 
 #define CURSOR_CTRL_PORT 0x3d4 // Control port
 #define CURSOR_DATA_PORT 0x3d5 // Data port
@@ -13,7 +13,7 @@
 static void
   set_cursor( u32 offset ); // Set cursor position with offset from 0xb8000
 
-static u32 get_cusor();                // Get cursor offset
+static u32 get_cursor();               // Get cursor offset
 static u32 get_pos_x( u32 offset );    // Get cursor's X position
 static u32 get_pos_y( u32 offset );    // Get cursor's Y position
 static u32 get_offset( u32 x, u32 y ); // Transform position to offset
@@ -25,21 +25,21 @@ static u32 get_offset( u32 x, u32 y ); // Transform position to offset
 void set_cursor( u32 offset )
 {
   offset >>= 1;
-  kports_out( CURSOR_CTRL_PORT, 0xe, BYTE );         // Open higher byte
-  kports_out( CURSOR_DATA_PORT, offset >> 8, BYTE ); // Write
+  kport_out( CURSOR_CTRL_PORT, 0xe, BYTE );         // Open higher byte
+  kport_out( CURSOR_DATA_PORT, offset >> 8, BYTE ); // Write
 
-  kports_out( CURSOR_CTRL_PORT, 0xf, BYTE );               // Open lower byte
-  kports_out( CURSOR_DATA_PORT, ( offset & 0xff ), BYTE ); // Write
+  kport_out( CURSOR_CTRL_PORT, 0xf, BYTE );               // Open lower byte
+  kport_out( CURSOR_DATA_PORT, ( offset & 0xff ), BYTE ); // Write
 }
 
-u32 get_cusor()
+u32 get_cursor()
 {
   u32 offset = 0;
-  kports_out( CURSOR_CTRL_PORT, 0xe, BYTE );
-  offset = kports_in( CURSOR_DATA_PORT ) << 8;
+  kport_out( CURSOR_CTRL_PORT, 0xe, BYTE );
+  offset = kport_in( CURSOR_DATA_PORT, BYTE ) << 8;
 
-  kports_out( CURSOR_CTRL_PORT, 0xf, BYTE );
-  offset += kports_in( CURSOR_DATA_PORT );
+  kport_out( CURSOR_CTRL_PORT, 0xf, BYTE );
+  offset += kport_in( CURSOR_DATA_PORT, BYTE );
 
   return offset << 1;
 }
@@ -87,7 +87,7 @@ u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
 
 i32 kconsole_putc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
 {
-  u32 offset = get_cusor();
+  u32 offset = get_cursor();
   offset = write( ch, bg, fg, offset );
   set_cursor( offset );
   return ch;
@@ -100,7 +100,7 @@ i32 kconsole_putc( u8 ch )
 
 i32 kconsole_puts_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg )
 {
-  u32 offset = get_cusor();
+  u32 offset = get_cursor();
   const u8 *s = str;
   i32 cnt = 0;
   while ( *s ) {
