@@ -33,13 +33,17 @@ ASM_OBJ						= ${ASM_SOURCES:.asm=.o}
 #ASM_OBJ					= ${BUILD_PATH}/${notdir ${ASM_SOURCES:.asm=.o}}
 
 .PHONY: all
-all : ${KERNEL_NAME}
+all :  ${BUILD_PATH} ${KERNEL_NAME}
 	@mkdir -p ${BUILD_PATH}/${ISO_DIR}/boot/grub
-	@cp ${BUILD_PATH}/$^ ${BUILD_PATH}/${ISO_DIR}/boot/
+	@cp ${BUILD_PATH}/${KERNEL_NAME} ${BUILD_PATH}/${ISO_DIR}/boot/
 	@sed 's,os-name,${OS_NAME},g; s,kernel-name,${KERNEL_NAME},g' \
 		${SCRIPTS_PATH}/grub.cfg > ${BUILD_PATH}/${ISO_DIR}/boot/grub/grub.cfg
 	@echo -e "\033[0;31mMakeing Kernel ISO \033[0m"
 	@grub-mkrescue -o ${BUILD_PATH}/${ISO_NAME} ${BUILD_PATH}/${ISO_DIR} > /dev/null 2>&1
+
+${BUILD_PATH}:
+	@echo -e "\033[0;34mCreating 'build' directory\033[0m"
+	@mkdir -p $@
 
 ${KERNEL_NAME} : ${ASM_OBJ} ${C_OBJ}
 	@echo -e "\033[0;34mLinking kernel \033[0m"
