@@ -14,7 +14,7 @@ ASM=nasm
 CC=gcc
 LD=ld
 
-CFLAGS	= -c -m32 -Wextra -Wall \
+CFLAGS=-c -m32 -Wextra -Wall \
 					-ggdb -gstabs+ \
 					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector \
 					-Xassembler --32 \
@@ -25,10 +25,10 @@ CFLAGS	= -c -m32 -Wextra -Wall \
 LDFLAGS = -T $(SCRIPTS_PATH)/link.ld -m elf_i386 -nostdlib
 ASFLAGS = -f elf
 
-C_SOURCES					= ${wildcard ${KERNEL_PATH}/*.c ${DRIVER_PATH}/*.c}
-C_OBJ							= ${C_SOURCES:.c=.o}
-ASM_SOURCES				= ${wildcard ${BOOT_PATH}/*.asm}
-ASM_OBJ						= ${ASM_SOURCES:.asm=.o}
+C_SOURCES=${wildcard ${KERNEL_PATH}/*.c ${DRIVER_PATH}/*.c}
+C_OBJ=${C_SOURCES:.c=.o}
+ASM_SOURCES=${wildcard ${BOOT_PATH}/*.asm}
+ASM_OBJ=${ASM_SOURCES:.asm=.o}
 
 .PHONY: all
 all :  ${BUILD_PATH} ${KERNEL_NAME}
