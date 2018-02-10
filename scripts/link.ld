@@ -8,11 +8,16 @@ SECTIONS
     . = ALIGN(4096);
 }
 
+.rodata :
+{
+  *(.rodata)
+  . = ALIGN(4096);
+}
+
 .data :
 {
   *(.data)
-    *(.rodata)
-    . = ALIGN(4096);
+  . = ALIGN(4096);
 }
 
 .bss :

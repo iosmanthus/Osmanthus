@@ -3,19 +3,16 @@
 
 #include <ktypes.h>
 
-#ifndef BYTE
-#define BYTE ( (u8)1 )
-#endif /* ifndef BYTE */
+/*
+ * Write 'data' to 'port' while specifying the data size: 'size'
+ * */
+void kout( u16 port, u32 data, KDataSize size );
 
-#ifndef WORD
-#define WORD ( ( u8 )( BYTE << 1 ) )
-#endif /* ifndef WORD */
 
-#ifndef DWORD
-#define DWORD ( ( u8 )( WORD << 1 ) )
-#endif /* ifndef DWORD */
+/*
+ * Read 'size' byte(s) from 'port'
+ * */
+u32 kin( u16 port, KDataSize size );
 
-void kport_out( u16 port, u32 data, u8 size ); // Write data
-u32 kport_in( u16 port, u8 size );             // Read data
 
 #endif /* ifndef _KPORTS_H_ */

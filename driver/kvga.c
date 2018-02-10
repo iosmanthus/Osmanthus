@@ -1,5 +1,5 @@
-#include <kconsole.h>
 #include <kport.h>
+#include <kvga.h>
 
 #define CURSOR_CTRL_PORT 0x3d4 // Control port
 #define CURSOR_DATA_PORT 0x3d5 // Data port
@@ -23,61 +23,67 @@ static u32 get_offset( u32 x, u32 y ); // Transform position to offset
 //                  u32 offset ); // Write VGA memory
 
 
-void set_cursor( u32 offset )
+inline void set_cursor( u32 offset )
 {
   offset >>= 1;
-  kport_out( CURSOR_CTRL_PORT, 0xe, BYTE );         // Open higher byte
-  kport_out( CURSOR_DATA_PORT, offset >> 8, BYTE ); // Write
+  kout( CURSOR_CTRL_PORT, 0xe, KBYTE );         // Open higher byte
+  kout( CURSOR_DATA_PORT, offset >> 8, KBYTE ); // Write
 
-  kport_out( CURSOR_CTRL_PORT, 0xf, BYTE );               // Open lower byte
-  kport_out( CURSOR_DATA_PORT, ( offset & 0xff ), BYTE ); // Write
+  kout( CURSOR_CTRL_PORT, 0xf, KBYTE );               // Open lower byte
+  kout( CURSOR_DATA_PORT, ( offset & 0xff ), KBYTE ); // Write
 }
 
-u32 get_cursor()
+inline u32 get_cursor()
 {
   u32 offset = 0;
-  kport_out( CURSOR_CTRL_PORT, 0xe, BYTE );
-  offset = kport_in( CURSOR_DATA_PORT, BYTE ) << 8;
+  kout( CURSOR_CTRL_PORT, 0xe, KBYTE );
+  offset = kin( CURSOR_DATA_PORT, KBYTE ) << 8;
 
-  kport_out( CURSOR_CTRL_PORT, 0xf, BYTE );
-  offset += kport_in( CURSOR_DATA_PORT, BYTE );
+  kout( CURSOR_CTRL_PORT, 0xf, KBYTE );
+  offset += kin( CURSOR_DATA_PORT, KBYTE );
 
   return offset << 1;
 }
 
-u32 get_pos_x( u32 offset )
+inline u32 get_pos_x( u32 offset )
 {
   offset >>= 1;
   return offset / WIDTH;
 }
 
-u32 get_pos_y( u32 offset )
+inline u32 get_pos_y( u32 offset )
 {
   offset >>= 1;
   return offset % WIDTH;
 }
 
-u32 get_offset( u32 x, u32 y )
+inline u32 get_offset( u32 x, u32 y )
 {
   return ( x * WIDTH + y ) << 1;
 }
 
 
-u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
+u32 write( char ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
 {
   u32 x = get_pos_x( offset ), y = get_pos_y( offset );
 
   if ( x >= HEIGHT || y >= WIDTH ) {
-    kscroll();
+    kvga_scroll();
     offset = get_offset( HEIGHT - 1, 0 );
   }
 
   if ( ch == '\n' ) {
     if ( x == 24 ) {
-      kscroll();
+      kvga_scroll();
       return get_offset( HEIGHT - 1, 0 );
     } else
       return get_offset( x + 1, 0 );
+  }
+
+  if ( ch == '\t' ) {
+    for ( int i = 0; i < 4; ++i )
+      offset = write( ' ', bg, fg, offset );
+    return offset;
   }
 
   VGA[offset] = ch;
@@ -86,7 +92,7 @@ u32 write( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
   return offset + 2;
 }
 
-i32 kputc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
+i32 kvga_cputc( char ch, VgaTextAtrr bg, VgaTextAtrr fg )
 {
   u32 offset = get_cursor();
   offset = write( ch, bg, fg, offset );
@@ -94,40 +100,39 @@ i32 kputc_color( u8 ch, VgaTextAtrr bg, VgaTextAtrr fg )
   return ch;
 }
 
-i32 kputc( u8 ch )
+inline i32 kvga_putc( char ch )
 {
-  return kputc_color( ch, VGA_BLACK, VGA_WHITE );
+  return kvga_cputc( ch, VGA_BLACK, VGA_WHITE );
 }
 
-i32 kputs_color( const u8 *str, VgaTextAtrr bg, VgaTextAtrr fg )
+i32 kvga_cputs( const char *str, VgaTextAtrr bg, VgaTextAtrr fg )
 {
   u32 offset = get_cursor();
-  const u8 *s = str;
   i32 cnt = 0;
-  while ( *s ) {
+  while ( *str ) {
     cnt++;
-    offset = write( *s++, bg, fg, offset );
+    offset = write( *str++, bg, fg, offset );
     set_cursor( offset );
   }
   return cnt;
 }
 
-i32 kputs( const u8 *str )
+i32 kvga_puts( const char *str )
 {
-  return kputs_color( str, VGA_BLACK, VGA_WHITE );
+  return kvga_cputs( str, VGA_BLACK, VGA_WHITE );
 }
 
-void kclear()
+void kvga_clear()
 {
   set_cursor( 0 );
   u8 *s = VGA;
   while ( s < &VGA[END] ) {
     *s++ = 0;
-    *s++ = VGA_WHITE;
+    *s++ = ( u8 )( VGA_BLACK << 4 ) + (u8)VGA_WHITE;
   }
 }
 
-void kscroll()
+void kvga_scroll()
 {
   typedef u16( *VideoMem )[WIDTH];
   VideoMem v = (VideoMem)VGA;
