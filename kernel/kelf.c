@@ -4,7 +4,7 @@
 #define ELF32_ST_TYPE( i ) ( (i)&0xf )
 
 // Get kernel elf info
-KELF kget_kernel_elf_info( KMultiBoot *mb )
+KELF kget_kernel_elf_info( const KMultiBoot *mb )
 {
   KELFSectionHeader *begin = (KELFSectionHeader *)mb->addr;
   KELF elf;
@@ -12,8 +12,8 @@ KELF kget_kernel_elf_info( KMultiBoot *mb )
   u32 shstrtab = begin[mb->shndx].addr; // Section name array
   // Loop through all sections
 
-  for ( const KELFSectionHeader *sh = begin, *const end = &begin[mb->num];
-        sh < end; ++sh ) {
+  const KELFSectionHeader *const end = &begin[mb->num];
+  for ( const KELFSectionHeader *sh = begin; sh < end; ++sh ) {
     const char *section_name = (const char *)( shstrtab + sh->name );
 
     if ( kstrcmp( section_name, ".strtab" ) == 0 ) {

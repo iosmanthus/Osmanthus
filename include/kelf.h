@@ -37,7 +37,7 @@ typedef struct _KELF {
 } KELF;
 
 // Get kernel elf info
-KELF kget_kernel_elf_info( KMultiBoot *mb );
+KELF kget_kernel_elf_info( const KMultiBoot *mb );
 
 // Return symbol whose address range includes 'addr'
 const char *kelf_search_symbol( u32 addr, const KELF *elf );
