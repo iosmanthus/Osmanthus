@@ -10,6 +10,7 @@
 
 #define VGA ( (u8 *)0xb8000 ) // VGA base address
 
+#define TAB_WIDTH 8
 
 static void
   set_cursor( u32 offset ); // Set cursor position with offset from 0xb8000
@@ -72,18 +73,12 @@ u32 write( char ch, VgaTextAtrr bg, VgaTextAtrr fg, u32 offset )
     offset = get_offset( HEIGHT - 1, 0 );
   }
 
-  if ( ch == '\n' ) {
-    if ( x == 24 ) {
-      kvga_scroll();
-      return get_offset( HEIGHT - 1, 0 );
-    } else
-      return get_offset( x + 1, 0 );
-  }
+  if ( ch == '\n' )
+    return get_offset( x + 1, 0 );
 
   if ( ch == '\t' ) {
-    for ( int i = 0; i < 4; ++i )
-      offset = write( ' ', bg, fg, offset );
-    return offset;
+    u32 align = TAB_WIDTH << 1;
+    return offset / align * align + align;
   }
 
   VGA[offset] = ch;

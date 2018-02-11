@@ -1,7 +1,7 @@
 #include <kstring.h>
 
 
-// For the simplicity, we do not aplly loop unrolling
+// For the simplicity, we do not apply loop unrolling
 
 inline void *kmemcpy( void *dst, const void *src, u32 n )
 {
