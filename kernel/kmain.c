@@ -1,5 +1,7 @@
 #include <karg.h>
+#include <kelf.h>
 #include <kio.h>
+#include <kmultiboot.h>
 #include <kport.h>
 #include <kstring.h>
 #include <ktypes.h>
@@ -26,9 +28,10 @@ int sum_up( int n, ... )
   return sum;
 }
 
-i32 kmain( struct multiboot *mboot_ptr )
+i32 kmain( KMultiBoot *mboot_ptr )
 {
-  i32 s = sum_up( 4, 1, 2, 3, 4 );
-  kprintf( "%.4s\n%20d", "hello world", 123456789 );
+  KELF elf = kget_kernel_elf_info( mboot_ptr );
+  kprintf( "%s:\t%p\n", kelf_search_symbol( (u32)sum_up, &elf ), sum_up );
+  kprintf( "%s:\t%p\n", kelf_search_symbol( (u32)kmain, &elf ), kmain );
   return 0;
 }
