@@ -11,27 +11,33 @@ DRIVER=driver
 LIB=lib
 INCLUDE=include
 
-ASM=nasm
+ASM=yasm
 CC=gcc
 LD=ld
 
+REPO=git@github.com:iosmanthus/Osmanthus.git
+BRANCH=dev-iosmanthus
+
+
 CFLAGS=-c -m32 -Wextra -Wall \
-					-ggdb -gstabs+ \
 					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector \
 					-Xassembler --32 \
 					-I${INCLUDE} \
 					-I${KERNEL} \
 					-I${DRIVER}
+RFLAGS=-DNDEBUG -O2
+DFLAGS=-g -ggdb -gstabs+
 
 LDFLAGS = -T $(SCRIPTS)/link.ld -m elf_i386 -nostdlib
 ASFLAGS = -f elf
 
 C_SOURCES=${wildcard ${KERNEL}/*.c ${DRIVER}/*.c ${LIB}/*.c}
 C_OBJ=${C_SOURCES:.c=.o}
-ASM_SOURCES=${wildcard ${BOOT}/*.asm}
+ASM_SOURCES=${wildcard ${BOOT}/*.asm ${KERNEL}/*.asm}
 ASM_OBJ=${ASM_SOURCES:.asm=.o}
 
 .PHONY: all
+all : CFLAGS+=${DFLAGS}
 all :  ${BUILD} ${KERNEL_NAME}
 	@mkdir -p ${BUILD}/${ISO_DIR}/boot/grub
 	@cp ${BUILD}/${KERNEL_NAME} ${BUILD}/${ISO_DIR}/boot/
@@ -48,24 +54,37 @@ ${KERNEL_NAME} : ${ASM_OBJ} ${C_OBJ}
 	@echo -e "\033[0;34mLinking kernel \033[0m"
 	@${LD} ${LDFLAGS} $^ -o ${BUILD}/$@
 
-%.o : %.c
-	@echo -e "\033[0;32mCompiling module :\t\033[0m" $<
-	@${CC} ${CFLAGS} $< -o $@
-
 %.o : %.asm
 	@echo -e "\033[0;32mAssembling module :\t\033[0m" $<
 	@${ASM} ${ASFLAGS} $< -o $@
 
+%.o : %.c
+	@echo -e "\033[0;32mCompiling module :\t\033[0m" $<
+	@${CC} ${CFLAGS} $< -o $@
+
 .PHONY: run
+run: CFLAGS += ${RFLAGS}
 run:
-	@make --no-print-directory
+	@make CFLAGS="${CFLAGS}" --no-print-directory
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 \
 		${BUILD}/${ISO_NAME} > /dev/null 2>&1
 
+.PHONY: release
+release: CFLAGS += ${RFLAGS}
+release:
+	@echo -e "\033[0;34mMaking release version\033[0m"
+	@make CFLAGS="${CFLAGS}" --no-print-directory
+
 .PHONY: debug
+debug: CFLAGS += ${DFLAGS}
 debug:
-	@make --no-print-directory
+	@echo -e "\033[0;34mMaking debug version\033[0m"
+	@make CFLAGS="${CFLAGS}" --no-print-directory
+
+
+.PHONY: gdb
+gdb:
 	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@qemu-system-i386 -s -S \
 		${BUILD}/${ISO_NAME} > /dev/null 2>&1 &
@@ -84,4 +103,4 @@ clean:
 .PHONY: upload
 upload:
 	@echo -e "\033[0;34mUploading to Github\033[0m"
-	@proxychains4 -q git push git@github.com:iosmanthus/Osmanthus.git dev-iosmanthus
+	@proxychains -q git push ${REPO} ${BRANCH}
