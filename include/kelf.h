@@ -40,6 +40,6 @@ typedef struct _KELF {
 KELF kget_kernel_elf_info( const KMultiBoot *mb );
 
 // Return symbol whose address range includes 'addr'
-const char *kelf_search_symbol( u32 addr, const KELF *elf );
+const char *ksearch_function( u32 addr, const KELF *elf );
 
 #endif /* ifndef _KELF_H_ */
