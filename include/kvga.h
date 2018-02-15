@@ -3,6 +3,8 @@
 
 #include <ktypes.h>
 
+#define TAB_WIDTH 4
+
 typedef enum _VgaTextAtrr {
   VGA_BLACK = 0,
   VGA_BLUE,

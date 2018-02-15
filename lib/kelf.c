@@ -28,8 +28,8 @@ KELF kget_kernel_elf_info( const KMultiBoot *mb )
   return elf;
 }
 
-// Return symbol whose address range includes 'addr'
-const char *kelf_search_symbol( u32 addr, const KELF *elf )
+// Return the name of the function whose address range includes 'addr'
+const char *ksearch_function( u32 addr, const KELF *elf )
 {
   if ( elf ) {
     const KELFSymbol *const end =

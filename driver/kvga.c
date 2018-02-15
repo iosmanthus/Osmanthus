@@ -10,7 +10,6 @@
 
 #define VGA ( (u8 *)0xb8000 ) // VGA base address
 
-#define TAB_WIDTH 8
 
 static void
   set_cursor( u32 offset ); // Set cursor position with offset from 0xb8000

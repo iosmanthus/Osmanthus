@@ -7,8 +7,9 @@ MULTIBOOT_CHECKSUM      equ     -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS)
 KERNEL_STACK_SIZE       equ     0x100000
 
 [bits 32]
-[global __start]
+[global __start:function]
 [extern kmain]
+[extern __kernel_multiboot_info]
 
 section .text
 
@@ -21,14 +22,16 @@ __start:
     mov esp, __kernel_stack_top
     and esp, 0x0fffffff0
 
-    push ebp
-    mov ebp, esp
+    mov ebp , 0x0
+    mov [__kernel_multiboot_info], ebx
 
-    push ebx
     call kmain
 __stop:
   hlt
   jmp __stop
+__start_end:
+size __start __start_end-__start
+
 
 section .bss
 __kernel_stack_base:

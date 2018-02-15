@@ -16,6 +16,7 @@
 #define SIGN 32  // Negative number
 #define SMALL 64 //  0x rather than 0X
 
+static char buf[0x40000];
 
 static char *number( char *str, i32 num, i32 size, i32 base, i32 precision,
                      i32 type );
@@ -163,7 +164,7 @@ i32 kvsprintf( char *buf, const char *fmt, kva_list args )
       }
     }
 
-    int precision = 0;
+    int precision = -1;
     if ( *fmt == '.' ) {
       ++fmt;
       if ( is_digit( *fmt ) )
@@ -193,14 +194,14 @@ i32 kvsprintf( char *buf, const char *fmt, kva_list args )
         const char *tmp = kva_arg( args, const char * );
         i32 len = kstrlen( tmp );
 
-        if ( len > precision )
+        if ( precision != -1 && len > precision )
           len = precision;
 
         if ( !( type & LEFT ) ) { // right-justify
           while ( len < width-- )
             *str++ = ' ';
-          kstrcpy( str, tmp );
-          str += len + 1;
+          for ( int i = 0; i < len; ++i )
+            *str++ = *tmp++;
         }
 
         while ( len < width-- ) // left-justify
@@ -212,8 +213,8 @@ i32 kvsprintf( char *buf, const char *fmt, kva_list args )
         break;
       case 'p':
         if ( width == 0 ) {
-          width = 8;
-          type |= ZEROPAD;
+          width = 8 + 2;
+          type |= ZEROPAD | SMALL | SPECIAL;
         }
         str = number( str, (u32)kva_arg( args, void * ), width, 16, precision,
                       type );
@@ -253,7 +254,6 @@ i32 kvsprintf( char *buf, const char *fmt, kva_list args )
 
 i32 kprintf( const char *fmt, ... )
 {
-  static char buf[0x40000];
   kva_list args;
   kva_start( args, fmt );
 
@@ -268,7 +268,6 @@ i32 kprintf( const char *fmt, ... )
 
 i32 kcprintf( VgaTextAtrr bg, VgaTextAtrr fg, const char *fmt, ... )
 {
-  static char buf[0x40000];
   kva_list args;
   kva_start( args, fmt );
 
@@ -279,4 +278,26 @@ i32 kcprintf( VgaTextAtrr bg, VgaTextAtrr fg, const char *fmt, ... )
   kva_end( args );
 
   return cnt;
+}
+
+i32 kputchar( char ch )
+{
+  i32 ret = kprintf( "%c", ch );
+  return ( ret == EOF ) ? EOF : ch;
+}
+
+i32 kcputchar( char ch, VgaTextAtrr bg, VgaTextAtrr fg )
+{
+  i32 ret = kcprintf( bg, fg, "%c", ch );
+  return ( ret == EOF ) ? EOF : ch;
+}
+
+i32 kputs( const char *str )
+{
+  return kprintf( "%s\n", str );
+}
+
+i32 kcputs( VgaTextAtrr bg, VgaTextAtrr fg, const char *str )
+{
+  return kcprintf( bg, fg, "%s\n", str );
 }

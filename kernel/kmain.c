@@ -1,13 +1,13 @@
 #include <karg.h>
+#include <kdebug.h>
+#include <kelf.h>
+#include <kgdt.h>
 #include <kio.h>
+#include <kmultiboot.h>
 #include <kport.h>
 #include <kstring.h>
 #include <ktypes.h>
 #include <kvga.h>
-
-struct multiboot {
-  ;
-};
 
 // QEMU shudown
 void kshutdown()
@@ -15,20 +15,23 @@ void kshutdown()
   kout( 0xf4, 0x00, KBYTE );
 }
 
+KMultiBoot *__kernel_multiboot_info = NULL;
+
 int sum_up( int n, ... )
 {
   kva_list arg_list;
   kva_start( arg_list, n );
   int sum = 0;
-  while ( n-- )
+  while ( n-- > 0 )
     sum += kva_arg( arg_list, int );
   kva_end( arg_list );
   return sum;
 }
 
-i32 kmain( struct multiboot *mboot_ptr )
+i32 kmain()
 {
-  i32 s = sum_up( 4, 1, 2, 3, 4 );
-  kprintf( "%.4s\n%20d", "hello world", 123456789 );
+  KGDTPtr gdt_ptr = kinit_gdt();
+  kload_gdt( &gdt_ptr );
+  kprintf( "hello world\n" );
   return 0;
 }
