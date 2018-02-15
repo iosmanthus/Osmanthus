@@ -1,5 +1,7 @@
 #include <karg.h>
+#include <kdebug.h>
 #include <kelf.h>
+#include <kgdt.h>
 #include <kio.h>
 #include <kmultiboot.h>
 #include <kport.h>
@@ -7,31 +9,29 @@
 #include <ktypes.h>
 #include <kvga.h>
 
-struct multiboot {
-  ;
-};
-
 // QEMU shudown
 void kshutdown()
 {
   kout( 0xf4, 0x00, KBYTE );
 }
 
+KMultiBoot *__kernel_multiboot_info = NULL;
+
 int sum_up( int n, ... )
 {
   kva_list arg_list;
   kva_start( arg_list, n );
   int sum = 0;
-  while ( n-- )
+  while ( n-- > 0 )
     sum += kva_arg( arg_list, int );
   kva_end( arg_list );
   return sum;
 }
 
-i32 kmain( KMultiBoot *mboot_ptr )
+i32 kmain()
 {
-  KELF elf = kget_kernel_elf_info( mboot_ptr );
-  kprintf( "%s:\t%p\n", kelf_search_symbol( (u32)sum_up, &elf ), sum_up );
-  kprintf( "%s:\t%p\n", kelf_search_symbol( (u32)kmain, &elf ), kmain );
+  KGDTPtr gdt_ptr = kinit_gdt();
+  kload_gdt( &gdt_ptr );
+  kprintf( "hello world\n" );
   return 0;
 }
