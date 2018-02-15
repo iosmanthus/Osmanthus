@@ -1,5 +1,5 @@
-#ifndef _kvga_H_
-#define _kvga_H_
+#ifndef _KVGA_H_
+#define _KVGA_H_
 
 #include <ktypes.h>
 
