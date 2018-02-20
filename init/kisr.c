@@ -21,29 +21,41 @@
  * SOFTWARE.
  */
 
-#ifndef _KIDT_H_
-#define _KIDT_H_
+#include <kdebug.h>
+#include <kidt.h>
+#include <kio.h>
+#include <kisr.h>
+#include <kport.h>
 
-#include <ktypes.h>
+static KInterruptHandler int_handler_pool[IDT_ENTRY_CNT] = {NULL};
+
+// Register an interrupt handler function
+void kreg_int_handler( u32 int_id, KInterruptHandler handler )
+{
+  int_handler_pool[int_id] = handler;
+}
+
+void kisr_handler( KPTRegs *pt_regs )
+{
+  // If registered
+  KInterruptHandler handler = int_handler_pool[pt_regs->int_id];
+  if ( handler )
+    handler( pt_regs );
+  else
+    kcprintf( VGA_BLACK, VGA_RED, "Unhandled interrupt: %d\n",
+              pt_regs->int_id );
+}
 
 
-typedef struct _KInterrputGate {
-  u16 base_low;
-  u16 segment_selector; // Segment selector
-  u8 reserve;           // High 4 bits are all 0s
-  u8 flags;
-  u16 base_high;
-} __attribute__( ( packed ) ) KInterrputGate;
+void kirq_handler( KPTRegs *pt_regs )
+{
+  // Send an EOI (end of interrupt) signal to the PICs.
+  // If this interrupt involved the slave.
+  if ( pt_regs->int_id >= 40 )
+    kout( 0xA0, 0x20, KBYTE );
 
-typedef struct _KIDTPtr {
-  u16 limit;
-  u32 base;
-} __attribute__( ( packed ) ) KIDTPtr;
+  // Reset master
+  kout( 0x20, 0x20, KBYTE );
 
-// Initialize IDT
-KIDTPtr kget_idt();
-
-// Load idt
-void kload_idt( const KIDTPtr *idt_ptr );
-
-#endif /* ifndef _KIDT_H_ */
+  kisr_handler( pt_regs );
+}
