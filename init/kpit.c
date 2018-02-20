@@ -21,21 +21,21 @@
  * SOFTWARE.
  */
 
-#ifndef _KPORTS_H_
-#define _KPORTS_H_
+#include <kpit.h>
+#include <kport.h>
 
-#include <ktypes.h>
+#define INPUT_FREQ 0x1234dc
 
-/*
- * Write 'data' to 'port' while specifying the data size: 'size'
- * */
-void kout( u16 port, u32 data, KDataSize size );
+void init_timer( u32 frequency, KInterruptHandler handler )
+{
+  kreg_int_handler( IRQ0, handler );
 
+  u32 divisor = INPUT_FREQ / frequency;
+  kout( 0x43, 0x36, KBYTE );
 
-/*
- * Read 'size' byte(s) from 'port'
- * */
-u32 kin( u16 port, KDataSize size );
+  u8 l = divisor & 0xff;
+  u8 h = ( divisor >> 8 ) & 0xff;
 
-
-#endif /* ifndef _KPORTS_H_ */
+  kout( 0x40, l, KBYTE );
+  kout( 0x40, h, KBYTE );
+}
