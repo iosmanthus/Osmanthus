@@ -1,9 +1,35 @@
+/*
+ * Copyright (c) 2018 Liming,Deng <myosmanthustree@gmail.com>
+ * Author: Liming Deng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include <karg.h>
 #include <kdebug.h>
 #include <kelf.h>
 #include <kgdt.h>
+#include <kidt.h>
 #include <kio.h>
+#include <kisr.h>
 #include <kmultiboot.h>
+#include <kpit.h>
 #include <kport.h>
 #include <kstring.h>
 #include <ktypes.h>
@@ -17,21 +43,20 @@ void kshutdown()
 
 KMultiBoot *__kernel_multiboot_info = NULL;
 
-int sum_up( int n, ... )
+void timer_handler( KPTRegs *pt_regs )
 {
-  kva_list arg_list;
-  kva_start( arg_list, n );
-  int sum = 0;
-  while ( n-- > 0 )
-    sum += kva_arg( arg_list, int );
-  kva_end( arg_list );
-  return sum;
+  static u32 times = 0;
+  kprintf( "counter:\t%u\n", times++ );
 }
 
 i32 kmain()
 {
   KGDTPtr gdt_ptr = kinit_gdt();
   kload_gdt( &gdt_ptr );
-  kprintf( "hello world\n" );
+  KIDTPtr idt_ptr = kget_idt();
+  kload_idt( &idt_ptr );
+
+  init_timer( 2000, timer_handler );
+  __asm__ volatile( "sti" );
   return 0;
 }
