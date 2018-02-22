@@ -2,6 +2,7 @@ ENTRY(__start)
 SECTIONS
 {
   . = 0x100000;
+  PROVIDE(__kernel_begin_addr = . );
   .text :
   {
     *(.text)
@@ -37,6 +38,6 @@ SECTIONS
   *(.stabstr)
   . = ALIGN(4096);
 }
-
+PROVIDE(__kernel_end_addr = . );
 /DISCARD/ : { *(.comment) *(.eh_frame) }
 }
