@@ -30,6 +30,7 @@
 #include <kisr.h>
 #include <kmultiboot.h>
 #include <kpit.h>
+#include <kpmm.h>
 #include <kport.h>
 #include <kstring.h>
 #include <ktypes.h>
@@ -40,8 +41,6 @@ void kshutdown()
 {
   kout( 0xf4, 0x00, KBYTE );
 }
-
-KMultiBoot *__kernel_multiboot_info = NULL;
 
 void timer_handler( KPTRegs *pt_regs )
 {
@@ -56,7 +55,7 @@ i32 kmain()
   KIDTPtr idt_ptr = kget_idt();
   kload_idt( &idt_ptr );
 
-  init_timer( 2000, timer_handler );
-  __asm__ volatile( "sti" );
+  kprintf( "Memory in used:%luMB\n", kget_kernel_mem_used( MB ) );
+  kshow_mem_map();
   return 0;
 }

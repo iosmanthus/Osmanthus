@@ -29,7 +29,6 @@
 
 static KELF kernel_elf;
 static const KELF *pkelf = NULL;
-extern KMultiBoot *__kernel_multiboot_info;
 
 // Define in boot/boot.asm
 
@@ -38,7 +37,7 @@ static void env_init();
 void env_init()
 {
   if ( pkelf == NULL ) {
-    kernel_elf = kget_kernel_elf_info( __kernel_multiboot_info );
+    kernel_elf = kget_kernel_elf_info( KERNEL_BOOT_INFO );
     pkelf = &kernel_elf;
   }
 }
