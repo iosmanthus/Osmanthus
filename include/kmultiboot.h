@@ -26,6 +26,7 @@
 
 #include <ktypes.h>
 
+
 typedef struct _KMultiBoot {
   u32 flags;
   u32 mem_lower;
@@ -41,6 +42,7 @@ typedef struct _KMultiBoot {
   u32 addr;
   u32 shndx;
 
+  // Memory info
   u32 mmap_length;
   u32 mmap_addr;
 
@@ -66,4 +68,7 @@ typedef struct _KMMapEntry {
   u32 type;
 } __attribute__( ( packed ) ) KMMapEntry;
 
+
+#define KERNEL_BOOT_INFO ( __kernel_multiboot_info )
+const KMultiBoot *__kernel_multiboot_info;
 #endif /* ifndef _KMULTIBOOT_H_ */
