@@ -96,10 +96,11 @@ char *number( char *str, i32 num, i32 size, i32 base, i32 precision, i32 type )
   }
 
   int i = 0;
+  u32 n = num;
   do {
-    nbuf[i++] = alphabet[num % base];
-    num /= base;
-  } while ( num );
+    nbuf[i++] = alphabet[n % base];
+    n /= base;
+  } while ( n );
 
   if ( i > precision )
     precision = i;
