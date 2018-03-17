@@ -23,6 +23,7 @@
 
 #include <kelf.h>
 #include <kstring.h>
+#include <kvmm.h>
 
 #define ELF32_ST_TYPE( i ) ( (i)&0xf )
 
@@ -37,14 +38,15 @@ KELF kget_kernel_elf_info( const KMultiBoot *mb )
 
   const KELFSectionHeader *const end = &begin[mb->num];
   for ( const KELFSectionHeader *sh = begin; sh < end; ++sh ) {
-    const char *section_name = (const char *)( shstrtab + sh->name );
+    const char *section_name =
+      (const char *)( shstrtab + sh->name ) + KERNEL_VM_OFFSET;
 
     if ( kstrcmp( section_name, ".strtab" ) == 0 ) {
-      elf.strtab = (const char *)sh->addr;
+      elf.strtab = (const char *)sh->addr + KERNEL_VM_OFFSET;
       elf.strtabsz = sh->size;
       continue;
     } else if ( kstrcmp( section_name, ".symtab" ) == 0 ) {
-      elf.symtab = (KELFSymbol *)sh->addr;
+      elf.symtab = (KELFSymbol *)sh->addr + KERNEL_VM_OFFSET;
       elf.symtabsz = sh->size;
     }
   }
