@@ -47,4 +47,11 @@ typedef enum _KDataSize {
   KDWORD = sizeof( u32 )
 } KDataSize;
 
+typedef enum _KMemUnit {
+  B = 1,
+  KB = 1 << 10,
+  MB = 1 << 20,
+  GB = 1 << 30
+} KMemUnit;
+
 #endif /* ifndef _KTYPES_H_ */

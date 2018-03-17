@@ -5,3 +5,5 @@
 build
 */*.o
 */Makefile
+.cquery
+.vscode

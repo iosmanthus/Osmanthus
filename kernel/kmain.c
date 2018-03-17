@@ -35,6 +35,7 @@
 #include <kstring.h>
 #include <ktypes.h>
 #include <kvga.h>
+#include <kvmm.h>
 
 // QEMU shudown
 void kshutdown()
@@ -42,7 +43,7 @@ void kshutdown()
   kout( 0xf4, 0x00, KBYTE );
 }
 
-void timer_handler( KPTRegs *pt_regs )
+void timer_handler( KPTRegs *pt_reGgs )
 {
   static u32 times = 0;
   kprintf( "counter:\t%u\n", times++ );
@@ -50,12 +51,17 @@ void timer_handler( KPTRegs *pt_regs )
 
 i32 kmain()
 {
+  kprintf( "%#x\n", KERNEL_BOOT_INFO );
   KGDTPtr gdt_ptr = kinit_gdt();
   kload_gdt( &gdt_ptr );
   KIDTPtr idt_ptr = kget_idt();
   kload_idt( &idt_ptr );
+  kinit_pmm();
+  kinit_vmm();
 
-  kprintf( "Memory in used:%luMB\n", kget_kernel_mem_used( MB ) );
-  kshow_mem_map();
+  *(int *)0xf0000000 = 4;
+  KELF elf = kget_kernel_elf_info( KERNEL_BOOT_INFO );
+  while ( 1 )
+    ;
   return 0;
 }

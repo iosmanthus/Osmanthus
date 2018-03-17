@@ -21,9 +21,13 @@
  * SOFTWARE.
  */
 
+#include <kdebug.h>
 #include <kio.h>
 #include <kmultiboot.h>
 #include <kpmm.h>
+
+static u32 frame_stack[KPMM_PAGE_CNT];
+static u32 frame_stack_top = KPMM_PAGE_CNT + 1;
 
 void kshow_mem_map()
 {
@@ -42,10 +46,43 @@ void kshow_mem_map()
   }
 }
 
+void kinit_pmm()
+{
+  KMMapEntry *entry = (KMMapEntry *)KERNEL_BOOT_INFO->mmap_addr,
+             *end =
+               &entry[KERNEL_BOOT_INFO->mmap_length / sizeof( KMMapEntry )];
+  for ( KMMapEntry *iter = entry; iter < end; ++iter ) {
+    if ( iter->type == KPMM_SEG_AVAILABLE &&
+         iter->base_addr_low == (u32)KERNEL_BEGIN ) {
+
+      u32 seg_begin = iter->base_addr_low;
+      u32 seg_end = PAGE_ALIGNED( seg_begin + KERNEL_SIZE );
+      u32 map_end = seg_begin + iter->length_low;
+
+      for ( u32 page_addr = seg_end;
+            page_addr < KPMM_MAX_SIZE && page_addr < map_end;
+            page_addr += KPMM_PAGE_SIZE ) {
+        kphy_page_free( page_addr );
+      }
+    }
+  }
+}
+
 u32 kget_kernel_mem_used( KMemUnit unit )
 {
   // Align to specified unit size
-  u32 used = ( KERNEL_END - KERNEL_BEGIN + unit - 1 ) / unit;
-
+  u32 used = ( KERNEL_SIZE + unit - 1 ) / unit;
   return used;
+}
+
+u32 kphy_page_alloc()
+{
+  kassert( frame_stack_top < KPMM_PAGE_CNT + 1 );
+  return frame_stack[frame_stack_top++];
+}
+
+void kphy_page_free( u32 page )
+{
+  kassert( frame_stack_top > 0 );
+  frame_stack[--frame_stack_top] = page;
 }

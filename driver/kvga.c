@@ -23,6 +23,7 @@
 
 #include <kport.h>
 #include <kvga.h>
+#include <kvmm.h>
 
 #define CURSOR_CTRL_PORT 0x3d4 // Control port
 #define CURSOR_DATA_PORT 0x3d5 // Data port
@@ -31,7 +32,7 @@
 #define WIDTH 80
 #define END ( ( HEIGHT * WIDTH ) << 1 )
 
-#define VGA ( (u8 *)0xb8000 ) // VGA base address
+#define VGA ( (u8 *)( 0xb8000 + KERNEL_VM_OFFSET ) ) // VGA base address
 
 
 static void

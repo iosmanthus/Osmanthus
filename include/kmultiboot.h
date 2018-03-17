@@ -69,6 +69,7 @@ typedef struct _KMMapEntry {
 } __attribute__( ( packed ) ) KMMapEntry;
 
 
-#define KERNEL_BOOT_INFO ( __kernel_multiboot_info )
+#define KERNEL_BOOT_INFO __kernel_multiboot_info
 const KMultiBoot *__kernel_multiboot_info;
+
 #endif /* ifndef _KMULTIBOOT_H_ */
