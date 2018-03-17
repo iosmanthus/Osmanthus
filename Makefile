@@ -21,7 +21,7 @@ BRANCH=dev-iosmanthus
 
 
 CFLAGS=-c -m32 -Wextra -Wall \
-					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector \
+					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector -fno-pie\
 					-Xassembler --32 \
 					-I${INCLUDE}
 RFLAGS=-DNDEBUG -O2
