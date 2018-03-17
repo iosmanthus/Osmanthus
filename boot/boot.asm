@@ -18,43 +18,46 @@
 ; IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 ; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+[bits 32]
 MULTIBOOT_HEADER_MAGIC  equ     0x1badb002
 MULTIBOOT_PAGE_ALIGN    equ     1 << 0
 MULTIBOOT_MEMORY_INFO   equ     1 << 1
 MULTIBOOT_HEADER_FLAGS  equ     MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO
 MULTIBOOT_CHECKSUM      equ     -(MULTIBOOT_HEADER_MAGIC+MULTIBOOT_HEADER_FLAGS)
-KERNEL_STACK_SIZE       equ     0x400000
+KERNEL_STACK_SIZE       equ     0x400
+KERNEL_VM_OFFSET        equ     0xC0000000
 
-[bits 32]
-[global __start:function]
-[extern kmain]
-[extern __kernel_multiboot_info]
 
-section .text
-
+section .init.text
 dd MULTIBOOT_HEADER_MAGIC
 dd MULTIBOOT_HEADER_FLAGS
 dd MULTIBOOT_CHECKSUM
 
+[global __start:function]
+[extern __kernel_multiboot_info]
+[extern kenable_paging]
+
 __start:
     cli
+
+    mov eax, __kernel_multiboot_info
+    sub eax, KERNEL_VM_OFFSET
+    mov [eax], ebx
+
     mov esp, __kernel_stack_top
     and esp, 0x0fffffff0
-
     mov ebp , 0x0
-    mov [__kernel_multiboot_info], ebx
-    call kmain
+    call kenable_paging
+
     jmp __stop
 .end
-
 size __start __start.end - __start
-
 __stop:
   hlt
   jmp __stop
 
-
-section .bss
+section .init.data
+; Temporary kernel stack
 __kernel_stack_base:
-    resb KERNEL_STACK_SIZE
+  times KERNEL_STACK_SIZE db 0 ; 1KB
 __kernel_stack_top:
