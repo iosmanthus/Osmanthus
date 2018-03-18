@@ -1,0 +1,3 @@
+set arch i386:intel
+target remote :1234
+symbol-file build/osmanthus
