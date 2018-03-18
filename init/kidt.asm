@@ -25,5 +25,9 @@ kload_idt:
   lidt [eax]
   ret
 .end
+<<<<<<< HEAD
 
 size kload_idt kload_idt.end - kload_idt
+=======
+size kload_idt kload_idt.end - kload_idt
+>>>>>>> dev-iosmanthus
