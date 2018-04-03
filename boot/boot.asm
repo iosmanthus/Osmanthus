@@ -40,13 +40,11 @@ dd MULTIBOOT_CHECKSUM
 __start:
     cli
 
-    mov eax, __kernel_multiboot_info
-    sub eax, KERNEL_VM_OFFSET
-    mov [eax], ebx
-
     mov esp, __kernel_stack_top
     and esp, 0x0fffffff0
     mov ebp , 0x0
+
+    push ebx
     call kenable_paging
 
     jmp __stop
