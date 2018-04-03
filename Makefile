@@ -92,20 +92,20 @@ debug:
 
 .PHONY: gdb
 gdb:
-	@echo -e "\033[0;34mStarting QEMU\033[0m"
-	@qemu-system-i386 -s -S \
-		${BUILD}/${ISO_NAME} > /dev/null 2>&1 &
 	@echo -e "\033[1;33mStarting GDB\033[0m"
+	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@gdb -x ${SCRIPTS}/gdbinit
 	@echo -e "\033[1;31mFinished\033[0m"
+	#@qemu-system-i386 -s -S \
+		#${BUILD}/${ISO_NAME} > /dev/null 2>&1 &
 
 gdbgui:
-	@echo -e "\033[0;34mStarting QEMU\033[0m"
-	@qemu-system-i386 -s -S \
-		${BUILD}/${ISO_NAME} > /dev/null 2>&1 &
 	@echo -e "\033[1;33mStarting GDB GUI\033[0m"
+	@echo -e "\033[0;34mStarting QEMU\033[0m"
 	@gdbgui -x ${SCRIPTS}/gdbinit
 	@echo -e "\033[1;31mFinished\033[0m"
+	#@qemu-system-i386 -s -S \
+		#${BUILD}/${ISO_NAME} > /dev/null 2>&1 &
 
 .PHONY: clean
 clean:
