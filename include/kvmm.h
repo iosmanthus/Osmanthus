@@ -38,18 +38,22 @@
 #define PAGE_WRITE 0x2
 #define PAGE_USER 0x4
 
-#define PGD_INDEX( x ) ( ( ( x ) >> 22 ) & 0x3ff )
-#define PGT_INDEX( x ) ( ( ( x ) >> 12 ) & 0x3ff )
-#define PAGE_OFFSET( x ) ( (x)&0xfff )
+#define PGD_INDEX(x) (((x) >> 22) & 0x3ff)
+#define PGT_INDEX(x) (((x) >> 12) & 0x3ff)
+#define PAGE_OFFSET(x) ((x)&0xfff)
 
-#define PDE_NEED ( KPMM_MAX_SIZE / ( KPMM_PAGE_SIZE * PGT_ENTRY_CNT ) )
+#define PDE_NEED (KPMM_MAX_SIZE / (KPMM_PAGE_SIZE * PGT_ENTRY_CNT))
 
 typedef u32 KPGD;
 typedef u32 KPGT;
 
 void kenable_paging();
-void kpage_fault( KPTRegs *pt_regs );
-void kswitch_pgd( u32 pgd );
+void kpage_fault(KPTRegs *pt_regs);
+void kswitch_pgd(u32 pgd);
 void kinit_vmm();
+void kmap(KPGD *pgd_now, u32 va, u32 pa, u32 flags);
+void kunmap(KPGD *pdg_now, u32 va);
+u32 kget_mapping(KPGD *pdg_now, u32 va);
+KPGD *kget_kernel_pgd();
 
 #endif /* ifndef _KVMM_H_ */
