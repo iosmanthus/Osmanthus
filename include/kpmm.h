@@ -24,32 +24,31 @@
 #ifndef _KPMM_H_
 #define _KPMM_H_
 
+#include <kmacros.h>
 #include <ktypes.h>
 
-#define KERNEL_BEGIN ( __kernel_begin_addr )
-#define KERNEL_END ( __kernel_end_addr )
-#define KERNEL_SIZE ( KERNEL_END - KERNEL_BEGIN )
-
+#define KERNEL_BEGIN (__kernel_begin_addr)
+#define KERNEL_END (__kernel_end_addr)
+#define KERNEL_SIZE (KERNEL_END - KERNEL_BEGIN)
 
 #define KPMM_MAX_SIZE 0x10000000 // Allow at most 256 MB physical memory
 #define KPMM_PAGE_SIZE 0x1000    // 4KB pages
 
-
-#define KPMM_PAGE_CNT ( KPMM_MAX_SIZE / KPMM_PAGE_SIZE )
+#define KPMM_PAGE_CNT (KPMM_MAX_SIZE / KPMM_PAGE_SIZE)
 #define KPMM_SEG_AVAILABLE 1
 
-#define PAGE_ALIGNED( x )                                                      \
-  ( ( ( x ) + KPMM_PAGE_SIZE - 1 ) & ~( KPMM_PAGE_SIZE - 1 ) )
+#define KPAGE_ALIGNED(x) (KALIGN(x, KPMM_PAGE_SIZE))
+#define KPAGE_MASK 0xfffff000
 
 extern const u8 __kernel_begin_addr[];
 extern const u8 __kernel_end_addr[];
 
-
 void kshow_mem_map();
-u32 kget_kernel_mem_used( KMemUnit unit );
+u32 kget_kernel_mem_used(KMemUnit unit);
 
 void kinit_pmm();
 u32 kphy_page_alloc();
-void kphy_page_free( u32 page );
+u32 kget_phy_pages_avail();
+void kphy_page_free(u32 page);
 
 #endif /* ifndef _KPMM_H_ */
