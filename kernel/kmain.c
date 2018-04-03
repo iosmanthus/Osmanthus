@@ -28,6 +28,7 @@
 #include <kidt.h>
 #include <kio.h>
 #include <kisr.h>
+#include <kmalloc.h>
 #include <kmultiboot.h>
 #include <kpit.h>
 #include <kpmm.h>
@@ -38,30 +39,83 @@
 #include <kvmm.h>
 
 // QEMU shudown
-void kshutdown()
-{
-  kout( 0xf4, 0x00, KBYTE );
+void kshutdown() { kout(0xf4, 0x00, KBYTE); }
+
+void hlt() {
+  while (1)
+    __asm__ volatile("hlt");
 }
 
-void timer_handler( KPTRegs *pt_reGgs )
-{
-  static u32 times = 0;
-  kprintf( "counter:\t%u\n", times++ );
+typedef struct _KList {
+  void *data;
+  struct _KList *next;
+  struct _KList *prev;
+} KList;
+
+KList *klist_append(KList *list, void *data) {
+  KList *node = (KList *)kmalloc(sizeof(KList));
+  node->data = data;
+  node->next = NULL;
+
+  if (!list)
+    return node;
+
+  KList *iter = list;
+  while (iter->next)
+    iter = iter->next;
+
+  iter->next = node;
+  node->prev = iter;
+
+  return list;
 }
 
-i32 kmain()
-{
-  kprintf( "%#x\n", KERNEL_BOOT_INFO );
+KList *klist_delete(KList *list, KList *node) {
+  KList *iter = list;
+  while (iter && iter != node)
+    iter = iter->next;
+
+  if (!iter)
+    return list;
+
+  if (iter->prev)
+    iter->prev->next = iter->next;
+  if (iter->next)
+    iter->next->prev = iter->prev;
+
+  KList *new_head = (node == list) ? list->next : list;
+  kfree(node);
+  return new_head;
+}
+
+void kmain() {
   KGDTPtr gdt_ptr = kinit_gdt();
-  kload_gdt( &gdt_ptr );
+
+  kload_gdt(&gdt_ptr);
   KIDTPtr idt_ptr = kget_idt();
-  kload_idt( &idt_ptr );
+
+  kload_idt(&idt_ptr);
+
   kinit_pmm();
   kinit_vmm();
 
-  *(int *)0xf0000000 = 4;
-  KELF elf = kget_kernel_elf_info( KERNEL_BOOT_INFO );
-  while ( 1 )
-    ;
-  return 0;
+  kprintf("%u\n", kget_phy_pages_avail());
+  KList *list = NULL;
+  for (i32 i = 0; i < 1024; ++i) {
+    list = klist_append(list, (void *)i);
+    kprintf("%u\n", kget_phy_pages_avail());
+  }
+
+  KList *iter = list;
+  while (iter) {
+    kprintf("%d\n", iter->data);
+    iter = iter->next;
+  }
+
+  for (i32 i = 0; i < 1024; ++i) {
+    list = klist_delete(list, list);
+    kprintf("%u\n", kget_phy_pages_avail());
+  }
+
+  hlt();
 }

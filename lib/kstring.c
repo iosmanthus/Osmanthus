@@ -2,122 +2,117 @@
  * Copyright (c) 2018 Liming,Deng <myosmanthustree@gmail.com>
  * Author: Liming Deng
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include <kstring.h>
 
-
 // For the simplicity, we do not apply loop unrolling
 
-inline void *kmemcpy( void *dst, const void *src, u32 n )
+inline void* kmemcpy(void* dst, const void* src, u32 n)
 {
-  const u8 *s = (u8 *)src;
-  u8 *t = (u8 *)dst;
-  while ( n-- )
+  const u8* s = (u8*)src;
+  u8* t = (u8*)dst;
+  while (n--)
     *t++ = *s++;
   return dst;
 }
 
-inline void *kmemset( void *s, u8 c, u32 n )
+inline void* kmemset(void* s, u8 c, u32 n)
 {
-  u8 *m = (u8 *)s;
-  while ( n-- )
+  u8* m = (u8*)s;
+  while (n--)
     *m++ = c;
   return s;
 }
 
-inline void *kbzero( void *s, u32 n )
+inline void* kbzero(void* s, u32 n)
 {
-  kmemset( s, '\0', n );
+  kmemset(s, '\0', n);
   return s;
 }
 
-inline i32 kstrcmp( const char *s1, const char *s2 )
+inline i32 kstrcmp(const char* s1, const char* s2)
 {
   i32 a = 0, b = 0;
   do {
     a = *s1++;
     b = *s2++;
-  } while ( a && b && a == b );
+  } while (a && b && a == b);
   return a - b;
 }
 
-
-inline i32 kstrncmp( const char *s1, const char *s2, u32 n )
+inline i32 kstrncmp(const char* s1, const char* s2, u32 n)
 {
   i32 a = 0, b = 0;
-  for ( ; n && a == b; --n ) {
+  for (; n && a == b; --n) {
     a = *s1++;
     b = *s2++;
   }
   return a - b;
 }
 
-char *kstrcat( char *dst, const char *src )
+char* kstrcat(char* dst, const char* src)
 {
-  char *t = dst;
-  while ( *t++ )
+  char* t = dst;
+  while (*t++)
     ;
   --t;
-  while ( *src )
+  while (*src)
     *t++ = *src++;
   return dst;
 }
 
-char *kstrncat( char *dst, const char *src, u32 n )
+char* kstrncat(char* dst, const char* src, u32 n)
 {
-  char *t = dst;
-  while ( *t++ )
+  char* t = dst;
+  while (*t++)
     ;
   --t;
-  while ( n-- )
+  while (n--)
     *t++ = *src++;
   *t = '\0';
   return dst;
 }
 
-
-char *kstrcpy( char *dst, const char *src )
+char* kstrcpy(char* dst, const char* src)
 {
-  char *t = dst;
-  while ( *src )
+  char* t = dst;
+  while (*src)
     *t++ = *src++;
   *t = '\0';
   return dst;
 }
-char *kstrncpy( char *dst, const char *src, u32 n )
+char* kstrncpy(char* dst, const char* src, u32 n)
 {
-  char *t = dst;
+  char* t = dst;
   u32 i;
-  for ( i = 0; i < n && *src; ++i )
+  for (i = 0; i < n && *src; ++i)
     *t++ = *src++;
-  for ( ; i < n; ++i )
+  for (; i < n; ++i)
     *t++ = '\0';
   return dst;
 }
 
-
-u32 kstrlen( const char *s )
+u32 kstrlen(const char* s)
 {
   u32 l = 0;
-  while ( *s++ )
+  while (*s++)
     ++l;
   return l;
 }

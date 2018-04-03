@@ -21,34 +21,24 @@
  * SOFTWARE.
  */
 
-#ifndef _KPMM_H_
-#define _KPMM_H_
+#ifndef _KMALLOC_H_
+#define _KMALLOC_H_
 
 #include <kmacros.h>
 #include <ktypes.h>
 
-#define KERNEL_BEGIN (__kernel_begin_addr)
-#define KERNEL_END (__kernel_end_addr)
-#define KERNEL_SIZE (KERNEL_END - KERNEL_BEGIN)
+#define KHEAP_START 0xe0000000
+#define BLOCK_ALIGNED(x) (KALIGN(x, 1 << 4))
 
-#define KPMM_MAX_SIZE 0x10000000 // Allow at most 256 MB physical memory
-#define KPMM_PAGE_SIZE 0x1000    // 4KB pages
+typedef struct _KBlockHeader {
+  struct _KBlockHeader *next;
+  struct _KBlockHeader *prev;
+  u32 block_size;
+  u32 used;
+} KBlockHeader;
 
-#define KPMM_PAGE_CNT (KPMM_MAX_SIZE / KPMM_PAGE_SIZE)
-#define KPMM_SEG_AVAILABLE 1
+void *kmalloc(u32 size);
+void kfree(void *ptr);
+void *kcalloc(u32 size, u32 blocks);
 
-#define KPAGE_ALIGNED(x) (KALIGN(x, KPMM_PAGE_SIZE))
-#define KPAGE_MASK 0xfffff000
-
-extern const u8 __kernel_begin_addr[];
-extern const u8 __kernel_end_addr[];
-
-void kshow_mem_map();
-u32 kget_kernel_mem_used(KMemUnit unit);
-
-void kinit_pmm();
-u32 kphy_page_alloc();
-u32 kget_phy_pages_avail();
-void kphy_page_free(u32 page);
-
-#endif /* ifndef _KPMM_H_ */
+#endif /* _KMALLOC_H_ */
