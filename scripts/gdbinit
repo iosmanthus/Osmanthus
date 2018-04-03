@@ -1,3 +1,5 @@
+shell qemu-system-i386 -s -S -cdrom ~/Projects/Osmanthus/build/osmanthus.iso &
+symbol-file ~/Projects/Osmanthus/build/osmanthus
 set arch i386:intel
 target remote :1234
-symbol-file build/osmanthus
+b kmain
