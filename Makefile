@@ -17,7 +17,7 @@ CC=gcc
 LD=ld
 
 REPO=git@github.com:iosmanthus/Osmanthus.git
-BRANCH=dev-iosmanthus
+BRANCH=iosmanthus
 
 
 CFLAGS=-c -m32 -Wextra -Wall \
