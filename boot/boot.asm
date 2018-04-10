@@ -41,7 +41,7 @@ __start:
     cli
 
     mov esp, __kernel_stack_top
-    and esp, 0xffffffff0
+    and esp, 0xfffffff0
     mov ebp , 0x0
 
     push ebx
