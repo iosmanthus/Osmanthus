@@ -48,10 +48,11 @@ SECTION(.init.data)
 static KPGT *kpt_high = (KPGT *)0x3000;
 
 SECTION(.init.text)
-void kenable_paging(KMultiBoot *mb) {
+void kenable_paging(KMultiBoot *mb)
+{
 
   KMultiBoot **mb_load_addr =
-      (KMultiBoot **)((u32)&KERNEL_BOOT_INFO - KERNEL_VM_OFFSET);
+    (KMultiBoot **)((u32)&KERNEL_BOOT_INFO - KERNEL_VM_OFFSET);
   *mb_load_addr = mb;
   *mb_load_addr = (KMultiBoot *)((u32)(*mb_load_addr) + KERNEL_VM_OFFSET);
 
@@ -62,7 +63,8 @@ void kenable_paging(KMultiBoot *mb) {
 
   // map VM 0xc0000000 - 0xc0400000 to PM 0 - 4MB
   ktmp_pgd[PGD_INDEX(KERNEL_VM_OFFSET)] =
-      (u32)kpt_high | PAGE_WRITE | PAGE_PRESENT;
+    (u32)kpt_high | PAGE_WRITE | PAGE_PRESENT;
+
   for (u32 i = 0; i < PGT_ENTRY_CNT; ++i)
     kpt_high[i] = (i << 12) | PAGE_WRITE | PAGE_PRESENT;
 
@@ -75,17 +77,21 @@ void kenable_paging(KMultiBoot *mb) {
   __asm__ volatile("mov %0, %%cr0" : : "r"(cr0));
 
   u32 kstack_p = (u32)(kstack_base + KERNEL_STACK_SIZE) & 0xfffffff0;
-  __asm__ volatile("mov %0, %%esp\n\t"
-                   "xor %%ebp, %%ebp"
-                   :
-                   : "r"(kstack_p));
+  __asm__ volatile(
+    "mov %0, %%esp\n\t"
+    "xor %%ebp, %%ebp"
+    :
+    : "r"(kstack_p));
 
   kmain();
 }
 
-void kinit_vmm() {
+void kinit_vmm()
+{
   u32 kernel_pgd_idx = PGD_INDEX(KERNEL_VM_OFFSET);
+
   for (u32 i = kernel_pgd_idx, j = 0; i < kernel_pgd_idx + PDE_NEED; ++i, ++j) {
+
     u32 pgt_phy_addr = (u32)&kernel_pgt[j] - KERNEL_VM_OFFSET;
     kernel_pgd[i] = pgt_phy_addr | PAGE_WRITE | PAGE_PRESENT;
   }
@@ -101,18 +107,24 @@ void kinit_vmm() {
   kswitch_pgd(kernel_pgd_phy_addr);
 }
 
-void kswitch_pgd(u32 pgd) { __asm__ volatile("mov %0, %%cr3" : : "r"(pgd)); }
+void kswitch_pgd(u32 pgd)
+{
+  __asm__ volatile("mov %0, %%cr3" : : "r"(pgd));
+}
 
-void kmap(KPGD *pgd_now, u32 va, u32 pa, u32 flags) {
+void kmap(KPGD *pgd_now, u32 va, u32 pa, u32 flags)
+{
   u32 pgd_idx = PGD_INDEX(va);
   u32 pt_idx = PGT_INDEX(va);
 
   KPGT *pte = (KPGT *)(pgd_now[pgd_idx] & KPAGE_MASK);
   if (!pte) {
+
     pte = (KPGT *)kphy_page_alloc();
     pgd_now[pgd_idx] = (u32)pte | PAGE_WRITE | PAGE_PRESENT;
     pte = (KPGT *)((u32)pte + KERNEL_VM_OFFSET);
     kbzero(pte, KPMM_PAGE_SIZE * sizeof(KPGT));
+
   } else
     pte = (KPGT *)((u32)pte + KERNEL_VM_OFFSET);
 
@@ -120,7 +132,8 @@ void kmap(KPGD *pgd_now, u32 va, u32 pa, u32 flags) {
   __asm__ volatile("invlpg (%0)" : : "a"(va));
 }
 
-void kunmap(KPGD *pdg_now, u32 va) {
+void kunmap(KPGD *pdg_now, u32 va)
+{
   u32 pgd_idx = PGD_INDEX(va);
   u32 pt_idx = PGT_INDEX(va);
 
@@ -133,7 +146,8 @@ void kunmap(KPGD *pdg_now, u32 va) {
 }
 
 // Return the physical page addr that page 'va' maps to
-u32 kget_mapping(KPGD *pdg_now, u32 va) {
+u32 kget_mapping(KPGD *pdg_now, u32 va)
+{
   u32 pgd_idx = PGD_INDEX(va);
   u32 pt_idx = PGT_INDEX(va);
 
@@ -145,40 +159,49 @@ u32 kget_mapping(KPGD *pdg_now, u32 va) {
   return pte[pt_idx] & KPAGE_MASK;
 }
 
-void kpage_fault(KPTRegs *pt_regs) {
+void kpage_fault(KPTRegs *pt_regs)
+{
   u32 cr2 = 0;
   // Get reg cr2 value;
   __asm__ volatile("mov %%cr2,%0" : "=r"(cr2));
 
-  kprintf("Page fault at %p, because access virtual page: %p\n", pt_regs->eip,
-          cr2);
+  kprintf_unsafe("Page fault at %p, because access virtual page: %p\n",
+		 pt_regs->eip, cr2);
   u32 error_code = pt_regs->error_code;
   // Present?
   if (error_code & PAGE_PRESENT)
-    kprintf("the fault was caused by a protection violation\n");
+    kprintf_unsafe("the fault was caused by a protection violation\n");
   else
-    kprintf("it was caused by a non-present page\n");
+    kprintf_unsafe("it was caused by a non-present page\n");
 
   // Read/Write fault
   if (error_code & PAGE_WRITE)
-    kprintf("Write fault\n");
+    kprintf_unsafe("Write fault\n");
   else
-    kprintf("Read fault\n");
+    kprintf_unsafe("Read fault\n");
 
   // User/Supervisor mode?
   if (error_code & PAGE_USER)
-    kprintf("In user mode\n");
+    kprintf_unsafe("In user mode\n");
   else
-    kprintf("In kernel mode\n");
+    kprintf_unsafe("In kernel mode\n");
 
   if (error_code & 0x8)
-    kprintf("Reserved bit overwritten\n");
+    kprintf_unsafe("Reserved bit overwritten\n");
 
   if (error_code & 0x10)
-    kprintf("the fault was caused by an instruction fetch\n");
+    kprintf_unsafe("the fault was caused by an instruction fetch\n");
 
   while (1)
     ;
 }
 
-KPGD *kget_kernel_pgd() { return kernel_pgd; }
+KPGD *kget_kernel_pgd()
+{
+  return kernel_pgd;
+}
+
+u8 *kget_kernel_stack_base()
+{
+  return kstack_base;
+}
