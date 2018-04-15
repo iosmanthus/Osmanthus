@@ -24,9 +24,12 @@
 #include <kmalloc.h>
 #include <kpmm.h>
 #include <kvmm.h>
+#include <kstring.h>
+#include <kmutex.h>
 
 static KBlockHeader *heap_start = NULL;
 static KBlockHeader *heap_end = (KBlockHeader *)KHEAP_START;
+static KThreadMutex heap_mutex = KTHREAD_MUTEX_INITIALIZER;
 
 static void split_block(KBlockHeader *header, u32 size);
 static void alloc_block(u32 start, u32 size);
@@ -34,8 +37,8 @@ static void glue_next_block(KBlockHeader *header);
 static KBlockHeader *glue_block(KBlockHeader *header);
 static void free_block(KBlockHeader *header);
 
-void *kmalloc(u32 size) {
-
+void *kmalloc_unsafe(u32 size)
+{
   // Add block header to a block
   size += sizeof(KBlockHeader);
   size = BLOCK_ALIGNED(size);
@@ -71,10 +74,22 @@ void *kmalloc(u32 size) {
     prev_blk->next = cur_blk;
 
   // Cut off the header
-  return (void *)((u32)cur_blk + sizeof(KBlockHeader));
+  void *ret = (void *)((u32)cur_blk + sizeof(KBlockHeader));
+  kbzero(ret, size - sizeof(KBlockHeader));
+  return ret;
 }
 
-void kfree(void *ptr) {
+void *kmalloc(u32 size)
+{
+  kthread_mutex_lock(&heap_mutex);
+  void *ret = kmalloc_unsafe(size);
+  kthread_mutex_unlock(&heap_mutex);
+  return ret;
+}
+
+void kfree(void *ptr)
+{
+  kthread_mutex_lock(&heap_mutex);
   if (ptr) {
     // Recover the header
     KBlockHeader *blk = (KBlockHeader *)((u32)ptr - sizeof(KBlockHeader));
@@ -82,14 +97,16 @@ void kfree(void *ptr) {
     blk = glue_block(blk);
     free_block(blk);
   }
+  kthread_mutex_unlock(&heap_mutex);
 }
 
-void split_block(KBlockHeader *header, u32 size) {
+void split_block(KBlockHeader *header, u32 size)
+{
   // Make sure one header left
   // Because all block's size are aligned to 16 bytes
   // then at least 16 bytes left in a block after spliting operation
-  if (header->used == 0 &&
-      header->prev->block_size - size > sizeof(KBlockHeader)) {
+  if (header->used == 0
+      && header->prev->block_size - size > sizeof(KBlockHeader)) {
 
     KBlockHeader *new_blk = (KBlockHeader *)((u32)header + size);
     new_blk->prev = header;
@@ -104,7 +121,8 @@ void split_block(KBlockHeader *header, u32 size) {
   }
 }
 
-void alloc_block(u32 start, u32 size) {
+void alloc_block(u32 start, u32 size)
+{
   u32 end = (u32)heap_end;
   // Allocate more physical pages if heap is not large enough
   while (start + size > end) {
@@ -115,14 +133,16 @@ void alloc_block(u32 start, u32 size) {
   heap_end = (KBlockHeader *)end;
 }
 
-void glue_next_block(KBlockHeader *header) {
+void glue_next_block(KBlockHeader *header)
+{
   header->block_size += header->next->block_size;
   header->next = header->next->next;
   if (header->next)
     header->next->prev = header;
 }
 
-KBlockHeader *glue_block(KBlockHeader *header) {
+KBlockHeader *glue_block(KBlockHeader *header)
+{
   if (header && header->used == 0) {
     if (header->next && header->next->used == 0)
       glue_next_block(header);
@@ -134,7 +154,8 @@ KBlockHeader *glue_block(KBlockHeader *header) {
   return header;
 }
 
-void free_block(KBlockHeader *header) {
+void free_block(KBlockHeader *header)
+{
   // if and only if the header represent the last block
   if (header && !header->used && !header->next) {
     if (header->prev)

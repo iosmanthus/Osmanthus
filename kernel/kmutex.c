@@ -21,25 +21,19 @@
  * SOFTWARE.
  */
 
-#ifndef _KMALLOC_H_
-#define _KMALLOC_H_
+#include <kmutex.h>
+#include <ksched.h>
+#include <katomic.h>
 
-#include <kmacros.h>
-#include <ktypes.h>
 
-#define KHEAP_START 0xe0000000
-#define BLOCK_ALIGNED(x) (KALIGN(x, 1 << 4))
+void kthread_mutex_lock(KThreadMutex *mutex)
+{
+  u32 tickets = kfectch_and_increase(&mutex->entries);
+  while (tickets != mutex->exits)
+    kscheduler();
+}
 
-typedef struct _KBlockHeader {
-  struct _KBlockHeader *next;
-  struct _KBlockHeader *prev;
-  u32 block_size;
-  u32 used;
-} KBlockHeader;
-
-void *kmalloc(u32 size);
-void *kmalloc_unsafe(u32 size);
-void kfree(void *ptr);
-void *kcalloc(u32 size, u32 blocks);
-
-#endif /* _KMALLOC_H_ */
+void kthread_mutex_unlock(KThreadMutex *mutex)
+{
+  ++mutex->exits;
+}

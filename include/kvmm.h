@@ -55,5 +55,6 @@ void kmap(KPGD *pgd_now, u32 va, u32 pa, u32 flags);
 void kunmap(KPGD *pdg_now, u32 va);
 u32 kget_mapping(KPGD *pdg_now, u32 va);
 KPGD *kget_kernel_pgd();
+u8 *kget_kernel_stack_base();
 
 #endif /* ifndef _KVMM_H_ */

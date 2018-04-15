@@ -21,10 +21,10 @@ BRANCH=iosmanthus
 
 
 CFLAGS=-c -m32 -Wextra -Wall \
-					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector -fno-pie\
+					-nostdinc -ffreestanding -fno-builtin -fno-stack-protector -fno-pie \
 					-Xassembler --32 \
 					-I${INCLUDE}
-RFLAGS=-DNDEBUG -O2
+RFLAGS=-DNDEBUG -O0
 DFLAGS=-g -ggdb -gstabs+
 
 LDFLAGS = -T $(SCRIPTS)/link.ld -m elf_i386 -nostdlib
@@ -34,7 +34,7 @@ C_SOURCES=${wildcard ${INIT}/*.c ${KERNEL}/*.c ${DRIVER}/*.c ${LIB}/*.c}
 
 C_OBJ=$(addprefix ${BUILD}/,${C_SOURCES:.c=_c.o})
 
-ASM_SOURCES=${wildcard ${BOOT}/*.asm ${INIT}/*.asm}
+ASM_SOURCES=${wildcard ${BOOT}/*.asm ${INIT}/*.asm ${KERNEL}/*.asm}
 
 ASM_OBJ=$(addprefix ${BUILD}/,${ASM_SOURCES:.asm=_asm.o})
 

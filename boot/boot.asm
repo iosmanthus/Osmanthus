@@ -49,7 +49,6 @@ __start:
 .end
 size __start __start.end - __start
 
-
 section .init.data
 ; Temporary kernel stack
 __kernel_stack_base:

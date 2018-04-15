@@ -21,25 +21,57 @@
  * SOFTWARE.
  */
 
-#ifndef _KMALLOC_H_
-#define _KMALLOC_H_
+#ifndef _KTHREAD_H_
+#define _KTHREAD_H_
 
-#include <kmacros.h>
 #include <ktypes.h>
+#include <kvmm.h>
+#include <kpmm.h>
 
-#define KHEAP_START 0xe0000000
-#define BLOCK_ALIGNED(x) (KALIGN(x, 1 << 4))
+typedef u32 KTID;
 
-typedef struct _KBlockHeader {
-  struct _KBlockHeader *next;
-  struct _KBlockHeader *prev;
-  u32 block_size;
-  u32 used;
-} KBlockHeader;
+typedef enum _KTHREAD_STATE {
+  KTHREAD_NEW,
 
-void *kmalloc(u32 size);
-void *kmalloc_unsafe(u32 size);
-void kfree(void *ptr);
-void *kcalloc(u32 size, u32 blocks);
+  KTHREAD_RUNNABLE,
 
-#endif /* _KMALLOC_H_ */
+  KTHREAD_BLOCKED,
+
+  KTHREAD_WAITING,
+
+  KTHREAD_TIMED_WAITING,
+
+  KTHREAD_TERMINATED
+
+} KTHREAD_STATE;
+
+/*typedef struct _KThreadMemInfo {
+  KPGD *pgd;
+  void *stack;
+  } KThreadMemInfo;*/
+
+typedef struct _KThreadContext {
+  u32 esp;
+  u32 ebp;
+  u32 ebx;
+  u32 esi;
+  u32 edi;
+  u32 eflags;
+} KThreadContext;
+
+typedef struct _KThread {
+  KTID tid;
+  KThreadContext context;
+  volatile KTHREAD_STATE state;
+  void *stack;
+  void *retval;
+  void *box;
+} KThread;
+
+KTID kthread_create(void *(*func)(void *arg), void *arg);
+void kthread_exit(void *retval);
+KTID kthread_self();
+KThread *kthread_self_ref();
+void kthread_join(KTID tid, void **retval);
+
+#endif /* _KTHREAD_H_ */

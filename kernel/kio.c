@@ -22,7 +22,9 @@
  */
 
 #include <kio.h>
+#include <kmalloc.h>
 #include <kstring.h>
+#include <kmutex.h>
 
 #define LEFT 1  // Print in left-justify
 #define PLUS 2  // Forces to show plus sign for positive number
@@ -39,16 +41,20 @@
 #define SIGN 32  // Negative number
 #define SMALL 64 //  0x rather than 0X
 
-static char buf[0x40000];
+static KThreadMutex vga_mutex = KTHREAD_MUTEX_INITIALIZER;
 
 static char *number(char *str, i32 num, i32 size, i32 base, i32 precision,
-                    i32 type);
+		    i32 type);
 static i32 is_digit(i32 ch);
 static i32 skip_atoi(const char **npptr);
 
-inline i32 is_digit(i32 ch) { return (ch >= '0' && ch <= '9'); }
+inline i32 is_digit(i32 ch)
+{
+  return (ch >= '0' && ch <= '9');
+}
 
-inline i32 skip_atoi(const char **npptr) {
+inline i32 skip_atoi(const char **npptr)
+{
   i32 i = 0;
   while (is_digit(**npptr))
     i = i * 10 + *((*npptr)++) - '0';
@@ -56,7 +62,8 @@ inline i32 skip_atoi(const char **npptr) {
   return i;
 }
 
-char *number(char *str, i32 num, i32 size, i32 base, i32 precision, i32 type) {
+char *number(char *str, i32 num, i32 size, i32 base, i32 precision, i32 type)
+{
 
   const char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   char nbuf[64]; // Number buffer
@@ -134,7 +141,8 @@ char *number(char *str, i32 num, i32 size, i32 base, i32 precision, i32 type) {
   return str;
 }
 
-i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
+i32 kvsprintf(char *buf, const char *fmt, kva_list args)
+{
   char *str = buf;
   for (; *fmt; ++fmt) {
     if (*fmt != '%') {
@@ -147,20 +155,20 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
     for (;; ++fmt) {
       switch (*fmt) {
       case '-':
-        type |= LEFT;
-        continue;
+	type |= LEFT;
+	continue;
       case '+':
-        type |= PLUS;
-        continue;
+	type |= PLUS;
+	continue;
       case '#':
-        type |= SPECIAL;
-        continue;
+	type |= SPECIAL;
+	continue;
       case ' ':
-        type |= SPACE;
-        continue;
+	type |= SPACE;
+	continue;
       case '0':
-        type |= ZEROPAD;
-        continue;
+	type |= ZEROPAD;
+	continue;
       }
       break;
     }
@@ -172,9 +180,9 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
     else if (*fmt == '*') {
       width = kva_arg(args, int);
       if (width < 0) {
-        width = -width;
-        type |= LEFT;
-        ++fmt;
+	width = -width;
+	type |= LEFT;
+	++fmt;
       }
     }
 
@@ -182,12 +190,12 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
     if (*fmt == '.') {
       ++fmt;
       if (is_digit(*fmt))
-        precision = skip_atoi(&fmt);
+	precision = skip_atoi(&fmt);
       else if (*fmt == '*') {
-        ++fmt;
-        precision = kva_arg(args, int);
-        if (precision < 0)
-          precision = 0;
+	++fmt;
+	precision = kva_arg(args, int);
+	if (precision < 0)
+	  precision = 0;
       }
     }
 
@@ -198,28 +206,28 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
     switch (*fmt) {
     case 'c':
       if (!(type & LEFT)) // if right-justify
-        while (--width > 0)
-          *str++ = ' ';
+	while (--width > 0)
+	  *str++ = ' ';
       *str++ = kva_arg(args, char);
       while (--width > 0) // left-justify
-        *str++ = ' ';
+	*str++ = ' ';
       break;
     case 's': {
       const char *tmp = kva_arg(args, const char *);
       i32 len = kstrlen(tmp);
 
       if (precision != -1 && len > precision)
-        len = precision;
+	len = precision;
 
       if (!(type & LEFT)) { // right-justify
-        while (len < width--)
-          *str++ = ' ';
-        for (int i = 0; i < len; ++i)
-          *str++ = *tmp++;
+	while (len < width--)
+	  *str++ = ' ';
+	for (int i = 0; i < len; ++i)
+	  *str++ = *tmp++;
       }
 
       while (len < width--) // left-justify
-        *str++ = ' ';
+	*str++ = ' ';
 
     } break;
     case 'o':
@@ -227,15 +235,15 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
       break;
     case 'p':
       if (width == 0) {
-        width = 8 + 2;
-        type |= ZEROPAD | SMALL | SPECIAL;
+	width = 8 + 2;
+	type |= ZEROPAD | SMALL | SPECIAL;
       }
       str = number(str, (u32)kva_arg(args, void *), width, 16, precision, type);
       break;
     case 'x':
     case 'X':
       if (*fmt == 'x')
-        type |= SMALL;
+	type |= SMALL;
       str = number(str, kva_arg(args, u32), width, 16, precision, type);
       break;
     case 'i':
@@ -254,11 +262,11 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
       break;
     default:
       if (*fmt != '%')
-        *str++ = '%'; // Restore previous '%'
+	*str++ = '%'; // Restore previous '%'
       if (*fmt)
-        *str++ = *fmt;
+	*str++ = *fmt;
       else
-        --fmt;
+	--fmt;
       break;
     }
   }
@@ -266,10 +274,11 @@ i32 kvsprintf(char *buf, const char *fmt, kva_list args) {
   return str - buf;
 }
 
-i32 kprintf(const char *fmt, ...) {
+i32 kprintf_unsafe(const char *fmt, ...)
+{
+  static char buf[0x40000];
   kva_list args;
   kva_start(args, fmt);
-
   i32 cnt = kvsprintf(buf, fmt, args);
   if (cnt > 0)
     kvga_puts(buf);
@@ -279,7 +288,29 @@ i32 kprintf(const char *fmt, ...) {
   return cnt;
 }
 
-i32 kcprintf(VgaTextAtrr bg, VgaTextAtrr fg, const char *fmt, ...) {
+i32 kprintf(const char *fmt, ...)
+{
+  kva_list args;
+  kva_start(args, fmt);
+
+  char *buf = (char *)kmalloc(sizeof(char) * 0x40000);
+  i32 cnt = kvsprintf(buf, fmt, args);
+  if (cnt > 0) {
+    kthread_mutex_lock(&vga_mutex);
+    kvga_puts(buf);
+    kthread_mutex_unlock(&vga_mutex);
+  }
+  kfree(buf);
+
+  kva_end(args);
+
+  return cnt;
+}
+
+i32 kcprintf_unsafe(VgaTextAtrr bg, VgaTextAtrr fg, const char *fmt, ...)
+{
+  static char buf[0x40000];
+
   kva_list args;
   kva_start(args, fmt);
 
@@ -292,18 +323,43 @@ i32 kcprintf(VgaTextAtrr bg, VgaTextAtrr fg, const char *fmt, ...) {
   return cnt;
 }
 
-i32 kputchar(char ch) {
+i32 kcprintf(VgaTextAtrr bg, VgaTextAtrr fg, const char *fmt, ...)
+{
+  kva_list args;
+  kva_start(args, fmt);
+
+  char *buf = (char *)kmalloc(sizeof(char) * 0x40000);
+  i32 cnt = kvsprintf(buf, fmt, args);
+  if (cnt > 0) {
+    kthread_mutex_lock(&vga_mutex);
+    kvga_cputs(buf, bg, fg);
+    kthread_mutex_unlock(&vga_mutex);
+  }
+  kfree(buf);
+
+  kva_end(args);
+
+  return cnt;
+}
+
+i32 kputchar(char ch)
+{
   i32 ret = kprintf("%c", ch);
   return (ret == EOF) ? EOF : ch;
 }
 
-i32 kcputchar(char ch, VgaTextAtrr bg, VgaTextAtrr fg) {
+i32 kcputchar(char ch, VgaTextAtrr bg, VgaTextAtrr fg)
+{
   i32 ret = kcprintf(bg, fg, "%c", ch);
   return (ret == EOF) ? EOF : ch;
 }
 
-i32 kputs(const char *str) { return kprintf("%s\n", str); }
+i32 kputs(const char *str)
+{
+  return kprintf("%s\n", str);
+}
 
-i32 kcputs(VgaTextAtrr bg, VgaTextAtrr fg, const char *str) {
+i32 kcputs(VgaTextAtrr bg, VgaTextAtrr fg, const char *str)
+{
   return kcprintf(bg, fg, "%s\n", str);
 }
