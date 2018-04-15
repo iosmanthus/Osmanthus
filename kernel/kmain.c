@@ -9,7 +9,9 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
+ * The abmain.c
+    ~/Projects/Osmanthus/kernel/kove copyright notice and this permission notice
+ shall be included in
  * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -37,85 +39,85 @@
 #include <ktypes.h>
 #include <kvga.h>
 #include <kvmm.h>
+#include <kthread.h>
+#include <kmutex.h>
+#include <kqueue.h>
+#include <ksched.h>
 
 // QEMU shudown
-void kshutdown() { kout(0xf4, 0x00, KBYTE); }
+void kshutdown()
+{
+  kout(0xf4, 0x00, KBYTE);
+}
 
-void hlt() {
+void hlt()
+{
   while (1)
     __asm__ volatile("hlt");
 }
 
-typedef struct _KList {
-  void *data;
-  struct _KList *next;
-  struct _KList *prev;
-} KList;
+int g = 0;
 
-KList *klist_append(KList *list, void *data) {
-  KList *node = (KList *)kmalloc(sizeof(KList));
-  node->data = data;
-  node->next = NULL;
+KThreadMutex mutex = KTHREAD_MUTEX_INITIALIZER;
 
-  if (!list)
-    return node;
-
-  KList *iter = list;
-  while (iter->next)
-    iter = iter->next;
-
-  iter->next = node;
-  node->prev = iter;
-
-  return list;
+void *print_a(void *arg)
+{
+  kprintf("%p\n", arg);
+  return arg;
 }
 
-KList *klist_delete(KList *list, KList *node) {
-  KList *iter = list;
-  while (iter && iter != node)
-    iter = iter->next;
-
-  if (!iter)
-    return list;
-
-  if (iter->prev)
-    iter->prev->next = iter->next;
-  if (iter->next)
-    iter->next->prev = iter->prev;
-
-  KList *new_head = (node == list) ? list->next : list;
-  kfree(node);
-  return new_head;
+void *print_b(void *arg)
+{
+  for (int i = 0; i < 100; ++i)
+    kcprintf(VGA_BLACK, VGA_GREEN, "love world\n");
+  // kthread_exit((void *)0xdeadbeaf);
+  return (void *)0xdeadbeaf;
 }
 
-void kmain() {
+void *print_c(void *arg)
+{
+  for (int i = 0; i < 100; ++i)
+    kcprintf(VGA_BLACK, VGA_LIGHT_RED, "fuck\n");
+  return (void *)0xdeaddead;
+}
+
+void kmain()
+{
   KGDTPtr gdt_ptr = kinit_gdt();
-
   kload_gdt(&gdt_ptr);
-  KIDTPtr idt_ptr = kget_idt();
 
+  KIDTPtr idt_ptr = kget_idt();
   kload_idt(&idt_ptr);
 
   kinit_pmm();
   kinit_vmm();
 
-  kprintf("%u\n", kget_phy_pages_avail());
-  KList *list = NULL;
-  for (i32 i = 0; i < 1024; ++i) {
-    list = klist_append(list, (void *)i);
-    kprintf("%u\n", kget_phy_pages_avail());
-  }
 
-  KList *iter = list;
-  while (iter) {
-    kprintf("%d\n", iter->data);
-    iter = iter->next;
-  }
+  // KQueue *queue = kqueue_init();
+  // for (int i = 0; i < 10; ++i)
+  //  kqueue_push_back(queue, (void *)i);
+  // for (int i = 0; i < 10; ++i) {
+  //  kprintf("%p\n", kqueue_front(queue)->data);
+  //  kqueue_pop_front(queue);
+  //}
 
-  for (i32 i = 0; i < 1024; ++i) {
-    list = klist_delete(list, list);
-    kprintf("%u\n", kget_phy_pages_avail());
-  }
+  kinit_sched();
+  KTID tid_a = kthread_create(print_a, (void *)0x8366251);
+  KTID tid_b = kthread_create(print_b, (void *)0xdeadbeef);
+  KTID tid_c = kthread_create(print_c, (void *)2);
+  kcprintf(VGA_BLACK, VGA_CYAN, "hello world\n");
+
+  void **ret = (void **)kmalloc(sizeof(void *));
+
+  kthread_join(tid_a, ret);
+  kprintf("%p\n", *ret);
+
+  kthread_join(tid_b, ret);
+  kprintf("%p\n", *ret);
+
+  kthread_join(tid_c, ret);
+  kprintf("%p\n", *ret);
+
 
   hlt();
 }
