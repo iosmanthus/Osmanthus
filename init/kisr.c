@@ -30,32 +30,42 @@
 static KInterruptHandler int_handler_pool[IDT_ENTRY_CNT] = {NULL};
 
 // Register an interrupt handler function
-void kreg_int_handler( u32 int_id, KInterruptHandler handler )
+void kreg_int_handler(u32 int_id, KInterruptHandler handler)
 {
   int_handler_pool[int_id] = handler;
 }
 
-void kisr_handler( KPTRegs *pt_regs )
+void kisr_handler(KPTRegs *pt_regs)
 {
   // If registered
   KInterruptHandler handler = int_handler_pool[pt_regs->int_id];
-  if ( handler )
-    handler( pt_regs );
+  if (handler)
+    handler(pt_regs);
   else
-    kcprintf( VGA_BLACK, VGA_RED, "Unhandled interrupt: %d\n",
-              pt_regs->int_id );
+    kcprintf_unsafe(VGA_BLACK, VGA_RED, "Unhandled interrupt: %d\n",
+		    pt_regs->int_id);
 }
 
 
-void kirq_handler( KPTRegs *pt_regs )
+void kirq_handler(KPTRegs *pt_regs)
 {
   // Send an EOI (end of interrupt) signal to the PICs.
   // If this interrupt involved the slave.
-  if ( pt_regs->int_id >= 40 )
-    kout( 0xA0, 0x20, KBYTE );
+  if (pt_regs->int_id >= 40)
+    kout(0xA0, 0x20, KBYTE);
 
   // Reset master
-  kout( 0x20, 0x20, KBYTE );
+  kout(0x20, 0x20, KBYTE);
 
-  kisr_handler( pt_regs );
+  kisr_handler(pt_regs);
+}
+
+void kcli()
+{
+  __asm__ volatile("cli");
+}
+
+void ksti()
+{
+  __asm__ volatile("sti");
 }
