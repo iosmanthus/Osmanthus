@@ -41,18 +41,13 @@ __start:
     cli
 
     mov esp, __kernel_stack_top
-    and esp, 0x0fffffff0
+    and esp, 0xfffffff0
     mov ebp , 0x0
 
     push ebx
     call kenable_paging
-
-    jmp __stop
 .end
 size __start __start.end - __start
-__stop:
-  hlt
-  jmp __stop
 
 section .init.data
 ; Temporary kernel stack
