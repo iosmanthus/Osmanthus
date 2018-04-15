@@ -38,6 +38,7 @@ typedef struct _KBlockHeader {
 } KBlockHeader;
 
 void *kmalloc(u32 size);
+void *kmalloc_unsafe(u32 size);
 void kfree(void *ptr);
 void *kcalloc(u32 size, u32 blocks);
 
