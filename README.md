@@ -18,6 +18,6 @@ Here are the features that has been implemented (or not) :
   - [x] Mutex ! (Bakery algorithm)
 - [ ] Multiprocessing (Maybe we need a file system)
 
-** IF YOU WANT TO KNOW MORE ABOUT THE PROJECT, CLICK THE FOLLOWING LINK **
+**IF YOU WANT TO KNOW MORE ABOUT THE PROJECT, CLICK THE FOLLOWING LINK**
 
 [Osmanthus Wiki](https://github.com/iosmanthus/Osmanthus/wiki)
