@@ -32,17 +32,17 @@
 #include <kisr.h>
 #include <kmalloc.h>
 #include <kmultiboot.h>
+#include <kmutex.h>
 #include <kpit.h>
 #include <kpmm.h>
 #include <kport.h>
+#include <kqueue.h>
+#include <ksched.h>
 #include <kstring.h>
+#include <kthread.h>
 #include <ktypes.h>
 #include <kvga.h>
 #include <kvmm.h>
-#include <kthread.h>
-#include <kmutex.h>
-#include <kqueue.h>
-#include <ksched.h>
 
 // QEMU shudown
 void kshutdown()
@@ -60,25 +60,25 @@ int g = 0;
 
 KThreadMutex mutex = KTHREAD_MUTEX_INITIALIZER;
 
-void *print_a(void *arg)
+void* print_a(void* arg)
 {
   kprintf("%p\n", arg);
   return arg;
 }
 
-void *print_b(void *arg)
+void* print_b(void* arg)
 {
   for (int i = 0; i < 100; ++i)
     kcprintf(VGA_BLACK, VGA_GREEN, "love world\n");
   // kthread_exit((void *)0xdeadbeaf);
-  return (void *)0xdeadbeaf;
+  return (void*)0xdeadbeaf;
 }
 
-void *print_c(void *arg)
+void* print_c(void* arg)
 {
   for (int i = 0; i < 100; ++i)
-    kcprintf(VGA_BLACK, VGA_LIGHT_RED, "fuck\n");
-  return (void *)0xdeaddead;
+    kcprintf(VGA_BLACK, VGA_LIGHT_RED, "yes\n");
+  return (void*)0xdeaddead;
 }
 
 void kmain()
@@ -92,7 +92,6 @@ void kmain()
   kinit_pmm();
   kinit_vmm();
 
-
   // KQueue *queue = kqueue_init();
   // for (int i = 0; i < 10; ++i)
   //  kqueue_push_back(queue, (void *)i);
@@ -102,12 +101,12 @@ void kmain()
   //}
 
   kinit_sched();
-  KTID tid_a = kthread_create(print_a, (void *)0x8366251);
-  KTID tid_b = kthread_create(print_b, (void *)0xdeadbeef);
-  KTID tid_c = kthread_create(print_c, (void *)2);
+  KTID tid_a = kthread_create(print_a, (void*)0x8366251);
+  KTID tid_b = kthread_create(print_b, (void*)0xdeadbeef);
+  KTID tid_c = kthread_create(print_c, (void*)2);
   kcprintf(VGA_BLACK, VGA_CYAN, "hello world\n");
 
-  void **ret = (void **)kmalloc(sizeof(void *));
+  void** ret = (void**)kmalloc(sizeof(void*));
 
   kthread_join(tid_a, ret);
   kprintf("%p\n", *ret);
@@ -117,7 +116,6 @@ void kmain()
 
   kthread_join(tid_c, ret);
   kprintf("%p\n", *ret);
-
 
   hlt();
 }
